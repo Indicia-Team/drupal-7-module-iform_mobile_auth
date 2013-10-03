@@ -1,0 +1,91 @@
+<?php
+/**
+ * @file
+ * The install and update code for the iform_mobile_auth module.
+ */
+require_once('iform_mobile_auth.module');
+
+/**
+ * Implements hook_install().
+ * Extend users table schema with custom fields
+ */
+function iform_mobile_auth_install() {
+    foreach ( iform_mobile_auth_user_fields() as $fielddef )
+    {
+      if (!field_info_field($fielddef->name)) {
+        watchdog('ima', 'Adding field: '.$fielddef->name);
+        $field = array(
+            'field_name' => $fielddef->name,
+            'type' => $fielddef->type
+        );
+        if (isset($fielddef->required))
+          $field['settings']=array('required'=>TRUE);
+        field_create_field($field);
+      } else
+        watchdog('ima', 'Field already exists: '.$fielddef->name);
+      if (!field_info_instance('user', $fielddef->name, 'user')) {
+        watchdog('ima', 'Adding instance: '.$fielddef->name);
+        $instance = array(
+            'field_name' => $fielddef->name,
+            'entity_type' => 'user',
+            'label' => $fielddef->title,
+            'bundle' => 'user',
+            'required' => isset($fielddef->required) && $fielddef->required
+        );
+        field_create_instance($instance);
+      } else
+        watchdog('ima', 'Instance already exists: '.$fielddef->name);
+    }
+}
+
+/**
+ * Implements hook_uninstall().
+ * Remove custom fields from users table
+ */
+function iform_mobile_auth_uninstall() {
+    
+    /*
+    Don't remove the fields as they are being used by other parts of the website
+    */
+}
+
+/**
+ * Implements hook_requirements($phase)
+ */
+function iform_mobile_auth_requirements($phase)
+{
+  $requirements = array();
+  $t = get_t();
+
+  if ($phase == 'runtime') {
+    $debug = variable_get('iform_mobile_auth_debug', 0);
+    $shared_secret = variable_get('iform_mobile_auth_shared_secret',NULL);
+    
+    $requirements['iform_mobile_auth'] = array(
+      'title' =>  $t('IForm Authentication Secret'),
+    );
+    
+    if ($shared_secret == NULL)
+    {
+      $requirements['iform_mobile_auth']['value'] = l($t('Not set'), 'admin/settings/iform/mobile');
+      $requirements['iform_mobile_auth']['severity'] = REQUIREMENT_ERROR;
+    }
+    else
+    {
+        $requirements['iform_mobile_auth']['value'] =  l($t('Configured'), 'admin/settings/iform/mobile');
+        $requirements['iform_mobile_auth']['severity'] = REQUIREMENT_OK;
+    }
+    
+    if ($debug)
+    {
+        $requirements['iform_mobile_auth_debug'] = array(
+            'title' => 'IForm Mobile Auth debug mode',
+            'value' =>  $t('Enabled'),
+            'severity' => REQUIREMENT_WARNING,
+            'description' => $t('The IForm Mobile Auth debug mode is currently enabled. Remember to <a href="@url">disable this on your production site</a>', array('@url' => '/admin/settings/iform/mobile')), 
+        );
+    }
+  }
+  
+  return $requirements;
+}

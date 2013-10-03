@@ -1,0 +1,9 @@
+; $Id$
+name = Indicia mobile module
+description = A module which bypasses standard drupal signup to allow a smoother app registration process and record 
+core = 7.x
+package = "Indicia"
+dependencies[] = iform
+dependencies[] = easy_login
+dependencies[] = entity
+version = "7.x-1.0"

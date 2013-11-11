@@ -62,6 +62,7 @@ function iform_mobile_auth_menu() {
   // Mobile based record submission
   $items['mobile/submit'] = array(
     'title'             => 'Submit a sample',
+    'type'              => MENU_CALLBACK,
     'page callback'     => 'iform_mobile_auth_client_submission',
     'access callback'   => true,
   );

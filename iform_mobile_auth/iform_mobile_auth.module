@@ -760,3 +760,26 @@ function iform_mobile_auth_log($message)
         watchdog("mobile_auth",$message);
     }
 }
+
+/** 
+ * Implement hook_user_view.
+ * Hide's system fields when not an admin.
+ */
+function iform_mobile_auth_user_view($account, $view_mode, $langcode) {
+  if (!user_access('administer users')) {
+    unset($account->content['field_iform_auth_shared_secret']);
+    unset($account->content['field_confirmation_code']);
+  }
+}
+
+/** 
+ * Implement hook_form_alter.
+ * Hide's system fields from forms when not an admin.
+ */
+function iform_mobile_auth_form_alter(&$form, &$form_state, $form_id) {
+  if (($form_id === 'user_profile_form' || $form_id === 'user_register')) {
+    if (!user_access('administer users'))
+      unset($form['field_iform_auth_shared_secret']);
+      unset($form['field_confirmation_code']);
+  }
+}

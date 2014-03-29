@@ -68,7 +68,7 @@ function iform_mobile_auth_menu() {
   );
   
   // Configuration
-  $items['admin/settings/iform/mobile'] = array(
+  $items['admin/config/iform/mobile'] = array(
     'title' => 'Mobile Auth Settings',
     'description' =>  'Configure variables relating to the mobile authorisation module',
     'page callback' => 'drupal_get_form',

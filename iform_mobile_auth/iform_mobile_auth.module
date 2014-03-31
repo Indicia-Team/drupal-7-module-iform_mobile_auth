@@ -448,45 +448,53 @@ function iform_mobile_auth_client_submission() {
     // Step 2.
     // Locate corresponding user
     // @todo This area of code needs more work on D6->D7 conversion
-    $existing_user = user_load_by_mail($email);    
-
-    if (empty($email) || $existing_user == FALSE)
-    {
-      if (empty($email)) $email = "app@mobile.net";
-      iform_mobile_auth_log('No corresponding user found with email');
-      $existing_user = (object)array("uid" => 0,
-          $indicia_id_field => "1", 
-          "name" => $email,
-          "mail" => $email,
-          $firstname_field => "Anonymous",
-          $secondname_field => "Anonymous");
+    if (isset($GLOBALS['user']) && $GLOBALS['user']->uid > 0) {
+      // User is already authenticated
+      $existing_user = $GLOBALS['user'];    
+      iform_mobile_auth_log('Authenticated user: '.print_r($existing_user,1)); 
+      // Skip to step 5
     }
-    else
-    {        
-      // Step 3.
-      // Verify USER shared secret...
-      if (empty($usersecret) || $usersecret != $existing_user->$usersecret_field)
-      {
-        drupal_add_http_header('Status', '400 Bad Request');
-        print 'Bad request';
-        iform_mobile_auth_log('User secret incorrect');
-        return;
-      }
-      
-      // Step 4.
-      // Check user activation status
-      if ($existing_user->status != 1)
-      {
-        iform_mobile_auth_log('User not activated');
-        drupal_add_http_header('Status', '407 Proxy Authentication Required');
-        print 'User not activated';
-        return;
-      }
-    }
+    else {
+      $existing_user = user_load_by_mail($email);    
 
-    // assign this user to global user var so that it can be added to the indicia submission
-    iform_mobile_auth_log('Existing user: '.print_r($existing_user,1));
-    $GLOBALS['user'] = $existing_user;
+      if (empty($email) || $existing_user == FALSE)
+      {
+        if (empty($email)) $email = "app@mobile.net";
+        iform_mobile_auth_log('No corresponding user found with email');
+        $existing_user = (object)array("uid" => 0,
+            $indicia_id_field => "1", 
+            "name" => $email,
+            "mail" => $email,
+            $firstname_field => "Anonymous",
+            $secondname_field => "Anonymous");
+      }
+      else
+      {        
+        // Step 3.
+        // Verify USER shared secret...
+        if (empty($usersecret) || $usersecret != $existing_user->$usersecret_field)
+        {
+          drupal_add_http_header('Status', '400 Bad Request');
+          print 'Bad request';
+          iform_mobile_auth_log('User secret incorrect');
+          return;
+        }
+
+        // Step 4.
+        // Check user activation status
+        if ($existing_user->status != 1)
+        {
+          iform_mobile_auth_log('User not activated');
+          drupal_add_http_header('Status', '407 Proxy Authentication Required');
+          print 'User not activated';
+          return;
+        }
+      }
+
+      // assign this user to global user var so that it can be added to the indicia submission
+      iform_mobile_auth_log('Existing user: '.print_r($existing_user,1));
+      $GLOBALS['user'] = $existing_user;
+    }
     
     // Step 5.
     // Replace user parameters in submission

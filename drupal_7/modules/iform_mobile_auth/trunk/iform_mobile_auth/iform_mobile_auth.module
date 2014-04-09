@@ -681,7 +681,15 @@ function iform_mobile_auth_client_submission() {
  */
 function iform_mobile_auth_escape($str)
 {
-    return check_plain($str);
+    if(is_array($str)) {
+      // Multi-value attributes are posted as arrays.
+      foreach($str as &$value) {
+        $value = check_plain($value);
+      }
+      return $str;
+    } else {
+      return check_plain($str);
+    }
 }
 
 

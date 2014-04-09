@@ -605,6 +605,10 @@ function iform_mobile_auth_client_submission() {
             {
                 $params[$key] = iform_mobile_auth_escape($value);
             }
+            if (strstr($key,'occAttr:') != FALSE)
+            {
+                $params[$key] = iform_mobile_auth_escape($value);
+            }
             if (strstr($key,'sample:') != FALSE)
             {
                 $params[$key] = iform_mobile_auth_escape($value);

@@ -2,7 +2,9 @@
 /*
  * Submit the relevant information to indicia
  */
-iform_load_helpers(array('data_entry_helper'));
+if(module_exists('iform')) {
+  iform_load_helpers(array('data_entry_helper'));
+}
 
 /**
  * Generates a list of user fields

@@ -76,7 +76,7 @@ function iform_mobile_auth_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('iform_mobile_auth_configuration_form'),
     'access arguments' => array('create iform'),
-    'type' => MENU_LOCAL_TASK,
+    'weight' => 3
   );
 
   return $items;

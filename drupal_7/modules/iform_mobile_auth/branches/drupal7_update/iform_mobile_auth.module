@@ -7,6 +7,9 @@
 
 require 'phpass/PasswordHash.php';
 
+//Module configuration's URL path
+define('CONFIG_PATH', 'admin/config/iform');
+
 /*
  * Implements hook_permission()
  * @return array
@@ -101,7 +104,7 @@ function iform_mobile_auth_menu() {
   );
   //User Interface options
   //Dashboard
-  $items['admin/settings/iform/mobile/dashboard'] = array(
+  $items[CONFIG_PATH . '/mobile/dashboard'] = array(
     'title' => 'Mobile Authentication',
     'description' =>  'Configure variables relating to the mobile authorisation module',
     'page callback' => 'iform_mobile_auth_dashboard',
@@ -110,7 +113,7 @@ function iform_mobile_auth_menu() {
     'type' => MENU_LOCAL_TASK,
   );
   //Add
-  $items['admin/settings/iform/mobile'] = array(
+  $items[CONFIG_PATH . '/mobile'] = array(
     'title' => 'Mobile Authentication',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('iform_mobile_auth_app'),
@@ -119,7 +122,7 @@ function iform_mobile_auth_menu() {
     'type' => MENU_CALLBACK,
   );
   //Edit
-  $items['admin/settings/iform/mobile/%iform_mobile_auth_app'] = array(
+  $items[CONFIG_PATH . '/mobile/%iform_mobile_auth_app'] = array(
     'title' => 'App settings',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('iform_mobile_auth_app', 4),
@@ -128,7 +131,7 @@ function iform_mobile_auth_menu() {
     'type' => MENU_CALLBACK,
   );
   //Delete
-  $items['admin/settings/iform/mobile/delete/%iform_mobile_auth_app'] = array(
+  $items[CONFIG_PATH . '/mobile/delete/%iform_mobile_auth_app'] = array(
     'title' => 'Delete App',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('iform_mobile_auth_delete', 5),
@@ -157,15 +160,12 @@ function iform_mobile_auth_user_register() {
     $indicia_id_field = 'field_indicia_user_id';
     $confirmation_code_field = 'field_confirmation_code';
 
-    // shared secret which needs to match that provided by app
-    $saved_appsecret = variable_get('iform_mobile_auth_shared_secret', NULL);
-
     iform_mobile_auth_log('iform_mobile_auth_user_register');
     iform_mobile_auth_log(print_r($_POST,1));
 
     // pull out parameters from POST request
     $firstname = empty($_POST['firstname']) ? '' : $_POST['firstname'];
-    $secondname = empty($_POST['secondname']) ? '' : $_POST['secondname'];    $email = $_POST['email'];
+    $secondname = empty($_POST['secondname']) ? '' : $_POST['secondname'];
     $email = $_POST['email'];
     $password = $_POST['password'];
     $provided_appsecret = $_POST['appsecret'];

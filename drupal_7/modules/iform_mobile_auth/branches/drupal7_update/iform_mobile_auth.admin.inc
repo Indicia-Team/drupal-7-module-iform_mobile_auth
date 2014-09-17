@@ -156,6 +156,10 @@ function iform_mobile_auth_app($form, &$form_state, $apps = NULL) {
     '#type' => 'submit',
     '#value' => t('Save')
   );
+
+  $form['cancel'] = array(
+    '#markup' => l(t('Cancel'), CONFIG_PATH . '/mobile/dashboard'),
+  );
   
   //check if user has access to create new app
   if(user_access('user mobile auth') || user_access('admin mobile auth')){
@@ -192,8 +196,8 @@ function iform_mobile_auth_dashboard() {
       $row[1] = $app['title'];
       $row[2] = $app['description'];
       $row[3] = '<input type="radio"' . ($app['debug'] ? 'checked' : 'disabled') . '>';
-      $row[4] = l(t('Edit'), 'admin/settings/iform/mobile/' . $app['id']);
-      $row[5] = l(t('Delete'), 'admin/settings/iform/mobile/delete/' . $app['id']);
+      $row[4] = l(t('Edit'), CONFIG_PATH . '/mobile/' . $app['id']);
+      $row[5] = l(t('Delete'), CONFIG_PATH . '/mobile/delete/' . $app['id']);
       
       $rows[] = $row;
     }
@@ -207,7 +211,7 @@ function iform_mobile_auth_dashboard() {
   $links = array(
     'link1' => array(
       'title' => t('Add Mobile Application'),
-      'href' => 'admin/settings/iform/mobile',
+      'href' => CONFIG_PATH . '/mobile',
     ),
   );
   
@@ -249,7 +253,7 @@ function iform_mobile_auth_app_submit($form, &$form_state) {
 
   //inform user and return to dashboard
     drupal_set_message(t($message, array('%app' => $form_state['values']['title'])));
-    $form_state['redirect'] = 'admin/settings/iform/mobile/dashboard';
+    $form_state['redirect'] = CONFIG_PATH . '/mobile/dashboard';
 }
 
 /**
@@ -261,7 +265,7 @@ function iform_mobile_auth_app_submit($form, &$form_state) {
  * @return mixed
  */
 function iform_mobile_auth_delete($form, &$form_state, $apps) {
-  
+
   //requested for an app account with an id that does not exist in DB
   if (empty($apps)){
     return drupal_not_found();
@@ -288,7 +292,7 @@ function iform_mobile_auth_delete($form, &$form_state, $apps) {
   // check if the user has permission to delete an app
   if(user_has_permission($app)){
     return confirm_form($form, $message,
-      'admin/settings/iform/mobile/dashboard', //redirect if cancelled
+      CONFIG_PATH . '/mobile/dashboard', //redirect if cancelled
       t('This action cannot be undone.'),
       t('Delete'),
       t('Cancel')
@@ -314,7 +318,7 @@ function iform_mobile_auth_delete_submit($form, &$form_state) {
     $message = 'Deleted %app.';
     drupal_set_message(t($message, array('%app' => $form_state['values']['title'])));
   }
-  $form_state['redirect'] = 'admin/settings/iform/mobile/dashboard';
+  $form_state['redirect'] = CONFIG_PATH . '/mobile/dashboard';
 } 
 
 

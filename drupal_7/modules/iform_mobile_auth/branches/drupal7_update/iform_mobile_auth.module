@@ -104,7 +104,7 @@ function iform_mobile_auth_menu() {
   );
   //User Interface options
   //Dashboard
-  $items[CONFIG_PATH . '/mobile/dashboard'] = array(
+  $items[CONFIG_PATH . '/mobile'] = array(
     'title' => 'Mobile Authentication',
     'description' =>  'Configure variables relating to the mobile authorisation module',
     'page callback' => 'iform_mobile_auth_dashboard',
@@ -113,7 +113,7 @@ function iform_mobile_auth_menu() {
     'type' => MENU_LOCAL_TASK,
   );
   //Add
-  $items[CONFIG_PATH . '/mobile'] = array(
+  $items[CONFIG_PATH . '/mobile/add'] = array(
     'title' => 'Mobile Authentication',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('iform_mobile_auth_app'),
@@ -540,19 +540,19 @@ function iform_mobile_auth_client_submission() {
             {
                 $params[$key] = iform_mobile_auth_escape($value);
             }
-            if (strstr($key,'occAttr:') != FALSE)
+            elseif (strstr($key,'occAttr:') != FALSE)
             {
                 $params[$key] = iform_mobile_auth_escape($value);
             }
-            if (strstr($key,'sample:') != FALSE)
+            elseif (strstr($key,'sample:') != FALSE)
             {
                 $params[$key] = iform_mobile_auth_escape($value);
             }
-            if (strstr($key,'occurrence:') != FALSE)
+            elseif (strstr($key,'occurrence:') != FALSE)
             {
                 $params[$key] = iform_mobile_auth_escape($value);
             }
-            if (strstr($key,'sc:') != FALSE)
+            elseif (strstr($key,'sc:') != FALSE)
             {
                 // sc: params indicate a list submission
                 $isOccurrencesList = TRUE;

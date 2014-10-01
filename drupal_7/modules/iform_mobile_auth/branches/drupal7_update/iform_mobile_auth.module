@@ -857,16 +857,17 @@ function verify_hash($secret, $hashed_secret) {
  * A function to escape user input.
  * Currently simply a wrapper around drupal's check_plain function.
  */
-function iform_mobile_auth_escape($str)
+function iform_mobile_auth_escape($value)
 {
-    if(is_array($str)) {
-      // Multi-value attributes are posted as arrays.
-      foreach($str as &$value) {
-        $value = check_plain($value);
-      }
-      return $str;
-    } else {
-      return check_plain($str);
+    if (is_array($value)) {
+        $escaped_array = array();
+        foreach($value as $key => $nested_value){
+            $escaped_array[$key] = iform_mobile_auth_escape($nested_value);
+        }
+        return $escaped_array;
+    }
+    else {
+        return check_plain($value);
     }
 }
 
@@ -958,7 +959,20 @@ function iform_mobile_auth_validate_password($pass)
  */
 function iform_mobile_auth_debug_mode()
 {
-    return variable_get('iform_mobile_auth_debug', 0) == 1;
+  if (empty($_POST['appname'])){
+    return FALSE;
+  }
+
+  $name = $_POST['appname'];
+
+  $result = db_query("SELECT * FROM {iform_mobile_auth} WHERE name = '%s'", $name);
+  while ($app = db_fetch_array($result)) {
+    if ($app[debug] == 1){
+      return TRUE;
+      break;
+    }
+  }
+  return FALSE;
 }
 
 /**

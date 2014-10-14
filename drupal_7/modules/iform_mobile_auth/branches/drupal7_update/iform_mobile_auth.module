@@ -96,6 +96,12 @@ function iform_mobile_auth_menu() {
     'page callback'     => 'iform_mobile_auth_client_submission',
     'access callback'   => true,
   );
+  // Mobile based record submission
+  $items['mobile/services'] = array(
+    'title'             => 'Submit a sample',
+    'page callback'     => 'iform_mobile_auth_services',
+    'access callback'   => true,
+  );
   // Mobile based report access
   $items['mobile/report'] = array(
     'title'             => 'Access a report',
@@ -679,6 +685,51 @@ function iform_mobile_auth_report() {
   }
   return;
 }
+
+/**
+ *
+ */
+function iform_mobile_auth_services(){
+  drupal_add_http_header('Content-type', 'application/json; charset=UTF-8');
+
+  $request = $_POST + $_GET;
+  iform_mobile_auth_log('iform_mobile_auth_report');
+  iform_mobile_auth_log('REQUEST');
+  iform_mobile_auth_log(print_r($request,1));
+
+  //authenticate
+  if (!$existing_user = iform_mobile_auth_authorise_request())
+    return;
+
+  //verify request
+  if (empty($request['table'])) {
+    print 'Bad request';
+    iform_mobile_auth_log('Missing service warehouse table.');
+    return;
+  }
+
+  //prepare request for warehouse query
+  $table = $request['table'];
+  $columns = $request['columns'];
+  unset($request['table']);
+  unset($request['columns']);
+
+  unset($request['appname']);
+  unset($request['appsecret']);
+
+  $connection = iform_get_connection_details(NULL);
+  $auth = data_entry_helper::get_read_auth($connection['website_id'], $connection['password']);
+
+  $response = data_entry_helper::get_population_data(array(
+    'table' => $table,
+    'columns' => $columns,
+    'extraParams' => $auth + $request,
+    'nocache' => true // forces a load from the db rather than local cache
+  ));
+
+  print json_encode($response);
+}
+
 
 /**
  * Authorise a request to either submit or read records from an app.

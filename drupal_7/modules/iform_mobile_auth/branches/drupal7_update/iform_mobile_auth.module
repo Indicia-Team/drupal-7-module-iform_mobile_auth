@@ -285,7 +285,7 @@ function iform_mobile_auth_user_register() {
               print $existing_user_obj->$secondname_field->value();
               print "\n";
               print $error;
-              watchdog('debug', 'response done');
+              iform_mobile_auth_log("User $email logged in");
           }
         }
         return;
@@ -380,6 +380,7 @@ function iform_mobile_auth_user_register() {
     print $new_user_obj->$secondname_field->value();
     print "\n";
     print $error;
+    iform_mobile_auth_log("User $email registered");
 }
 
 

@@ -1038,6 +1038,7 @@ function iform_mobile_auth_debug_mode()
 /**
  * Logs app send data.
  * todo: add user authentication option, so that messages have user id.
+ *
  */
 function iform_mobile_auth_log_submission(){
   $appname = $_POST['appname'];

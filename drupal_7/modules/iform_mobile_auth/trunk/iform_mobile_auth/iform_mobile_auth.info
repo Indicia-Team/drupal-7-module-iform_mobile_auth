@@ -1,9 +1,7 @@
-; $Id$
-name = Indicia mobile module
+; $Id: nodetitle.info,v 1.1.4.1 2010/05/29 22:12:54 hanoii Exp $
+name = Indicia mobile auth
 description = A module which bypasses standard drupal signup to allow a smoother app registration process and record 
-core = 7.x
 package = "Indicia"
+core = 7.x
 dependencies[] = iform
-dependencies[] = easy_login
-dependencies[] = entity
-version = "7.x-1.0"
+version = "7.x-1.1"

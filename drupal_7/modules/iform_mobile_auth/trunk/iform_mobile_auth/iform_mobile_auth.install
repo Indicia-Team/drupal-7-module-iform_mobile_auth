@@ -1,41 +1,152 @@
 <?php
+
 /**
  * @file
  * The install and update code for the iform_mobile_auth module.
  */
+ 
 require_once('iform_mobile_auth.module');
 
 /**
+ * Implements hook_schema()
+ */
+ function iform_mobile_auth_schema(){
+   $schema['iform_mobile_auth'] = array(
+      'description' => 'iForm Mobile Authentication Module table',
+      'fields' => array(
+        'id'=> array(
+          'description' => 'The primary identifier for an app.',
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'no export' => TRUE,
+        ),
+        'enabled'=> array(
+          'description' => 'App enabled.',
+          'type' => 'int',
+          'size' => 'tiny',
+          'not null' => TRUE,
+          'default' => 0,
+        ),
+        'debug'=> array(
+          'description' => 'Debugging enabled.',
+          'type' => 'int',
+          'size' => 'tiny',
+          'not null' => TRUE,
+          'default' => 0,
+        ),
+        'title'=> array(
+          'description' => 'App title.',
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+        ),
+        'description'=> array(
+          'description' => 'App description.',
+          'type' => 'text',
+          'size' => 'normal',
+          'not null' => TRUE,
+        ),
+          'name' => array(
+          'description' => 'App name.',
+          'type' => 'varchar',
+          'length' => 32,
+          'not null' => TRUE,
+        ),
+        'secret'=> array(
+          'description' => 'App secret.',
+          'type' => 'varchar',
+          'length' => 60,
+          'not null' => TRUE,
+        ),
+        'registration_subject'=> array(
+          'description' => 'App User registration email subject heading.',
+          'type' => 'varchar',
+          'length' => 32,
+          'not null' => TRUE,
+        ),
+        'registration_body'=> array(
+          'description' => 'App registration email body.',
+          'type' => 'text',
+          'size' => 'normal',
+          'not null' => TRUE,
+        ),
+        'registration_redirect'=> array(
+          'description' => 'App url to redirect users to after clicking on the confirmation link.',
+          'type' => 'varchar',
+          'length' => 32,
+          'not null' => TRUE,
+        ),
+        'redirect_unsuccessful'=> array(
+          'description' => 'App url to redirect anonymous users to if attempting to reactive an already expired or invalid link.',
+          'type' => 'varchar',
+          'length' => 32,
+          'not null' => TRUE,
+        ),
+        'created_by' => array(
+          'description' => 'Used id that created the app',
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'default' => 0
+        ),
+        'created' => array(
+          'description' => 'The Unix timestamp when the app was created.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'unsigned' => TRUE,
+          'default' => 0
+        ),
+        'changed' => array(
+          'description' => 'The Unix timestamp when the app was most recently saved.',
+          'type' => 'int',
+          'not null' => TRUE,
+          'unsigned' => TRUE,
+          'default' => 0
+        ),
+       ),
+      'unique keys' => array(
+        'id' => array('id')
+       ),
+      'primary key' => array('id'),
+   );
+   
+  return $schema; 
+ } 
+
+/**
  * Implements hook_install().
- * Extend users table schema with custom fields
+ * Installs module's table and extends users table schema with custom fields.
  */
 function iform_mobile_auth_install() {
-    foreach ( iform_mobile_auth_user_fields() as $fielddef )
-    {
-      if (!field_info_field($fielddef->name)) {
-        watchdog('ima', 'Adding field: '.$fielddef->name);
-        $field = array(
-            'field_name' => $fielddef->name,
-            'type' => $fielddef->type
-        );
-        if (isset($fielddef->required))
-          $field['settings']=array('required'=>TRUE);
-        field_create_field($field);
-      } else
-        watchdog('ima', 'Field already exists: '.$fielddef->name);
-      if (!field_info_instance('user', $fielddef->name, 'user')) {
-        watchdog('ima', 'Adding instance: '.$fielddef->name);
-        $instance = array(
-            'field_name' => $fielddef->name,
-            'entity_type' => 'user',
-            'label' => $fielddef->title,
-            'bundle' => 'user',
-            'required' => isset($fielddef->required) && $fielddef->required
-        );
-        field_create_instance($instance);
-      } else
-        watchdog('ima', 'Instance already exists: '.$fielddef->name);
-    }
+   // drupal_install_schema('iform_mobile_auth');
+
+  foreach ( iform_mobile_auth_user_fields() as $fielddef )
+  {
+    if (!field_info_field($fielddef->name)) {
+      watchdog('ima', 'Adding field: '.$fielddef->name);
+      $field = array(
+        'field_name' => $fielddef->name,
+        'type' => $fielddef->type
+      );
+      if (isset($fielddef->required))
+        $field['settings']=array('required'=>TRUE);
+      field_create_field($field);
+    } else
+      watchdog('ima', 'Field already exists: '.$fielddef->name);
+    if (!field_info_instance('user', $fielddef->name, 'user')) {
+      watchdog('ima', 'Adding instance: '.$fielddef->name);
+      $instance = array(
+        'field_name' => $fielddef->name,
+        'entity_type' => 'user',
+        'label' => $fielddef->title,
+        'bundle' => 'user',
+        'required' => isset($fielddef->required) && $fielddef->required
+      );
+      field_create_instance($instance);
+    } else
+      watchdog('ima', 'Instance already exists: '.$fielddef->name);
+  }
 }
 
 /**
@@ -44,8 +155,18 @@ function iform_mobile_auth_install() {
  */
 function iform_mobile_auth_uninstall() {
     
+    drupal_uninstall_schema('iform_mobile_auth');
     /*
-    Don't remove the fields as they are being used by other parts of the website
+    //Don't remove the fields as they are being used by other parts of the website
+    
+    foreach ( iform_mobile_auth_profile_fields() as $field )
+    {
+        db_query("DELETE FROM {profile_values} WHERE fid IN (SELECT fid FROM {profile_fields} WHERE name='%s' AND category='%s')",$field->name);
+        db_query("DELETE FROM {profile_fields} WHERE name='%s'", $field->name);
+        $msg = 'Profile field '.$field->name.' was deleted.';
+        watchdog('info', $msg);
+        drupal_set_message($msg);
+    }
     */
 }
 

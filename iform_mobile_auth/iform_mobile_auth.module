@@ -440,7 +440,20 @@ function iform_mobile_auth_client_submission() {
     return;
 
   $safe_website_id = intval($_POST['website_id']);
+  if ($safe_website_id == 0 || 
+          $safe_website_id != variable_get('indicia_website_id', '')) {
+    drupal_add_http_header('Status', '400 Bad Request');
+    print 'Bad request';
+    iform_mobile_auth_log('Missing or incorrect website_id');
+    return;  
+  }
   $safe_survey_id = intval($_POST['survey_id']);
+  if ($safe_survey_id == 0) {
+    drupal_add_http_header('Status', '400 Bad Request');
+    print 'Bad request';
+    iform_mobile_auth_log('Missing or incorrect survey_id');
+    return;    
+  }
 
   // Step 5.
   // Replace user parameters in submission

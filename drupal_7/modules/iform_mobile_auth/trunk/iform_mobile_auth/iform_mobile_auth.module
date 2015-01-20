@@ -316,7 +316,6 @@ function iform_mobile_auth_user_register() {
   // generate the user confirmation code returned via email
   $confirmation_code = iform_mobile_auth_generate_random_string(20);
 
-  $roles = user_roles(true);
   $user_details = array('pass' => $password, /* handles the (unsalted) hash process */
     'name' => $email,
     'mail' => $email);
@@ -327,7 +326,8 @@ function iform_mobile_auth_user_register() {
   // Step 7.
   // Associate indicia_id with user account
 
-  // Look up indicia id...
+  // Look up indicia id... although easy_login will also do this in its
+  // hook_user_update if it is enabled.
   $indicia_user_id = iform_mobile_auth_get_user_id($email, $firstname, $secondname, $new_user->uid);
 
   $error = '';
@@ -338,12 +338,7 @@ function iform_mobile_auth_user_register() {
     $error = $indicia_user_id;
   }
 
-  // update the userid
-  $new_user->roles[2] = $roles[2]; // authenticated user role
-  $new_user = user_save($new_user);
-
   // save all the user fields
-
   $new_user_obj->$firstname_field->set($firstname);
   $new_user_obj->$secondname_field->set($secondname);
   $new_user_obj->$indicia_id_field->set($indicia_user_id);

@@ -421,9 +421,12 @@ function iform_mobile_auth_client_submission() {
   iform_mobile_auth_log(print_r($_POST,1));
 
   // Steps 1 to 4 are covered in the request authorisation
-  if (!$existing_user = iform_mobile_auth_authorise_request())
+  if (!$existing_user = iform_mobile_auth_authorise_request()) {
     return;
-
+  }
+  // Wrap user for easier access to fields
+  $user_wrapped = entity_metadata_wrapper('user', $existing_user);
+        
   $safe_website_id = intval($_POST['website_id']);
   if ($safe_website_id == 0 || 
           $safe_website_id != variable_get('indicia_website_id', '')) {
@@ -447,8 +450,8 @@ function iform_mobile_auth_client_submission() {
     if ($value == '[userid]') $_POST[$key] = $existing_user->uid;
     if ($value == '[username]') $_POST[$key] = $existing_user->name;
     if ($value == '[email]') $_POST[$key] = $existing_user->mail;
-    if ($value == '[firstname]') $_POST[$key] = $existing_user->$firstname_field;
-    if ($value == '[surname]') $_POST[$key] = $existing_user->$secondname_field;
+    if ($value == '[firstname]') $_POST[$key] = $user_wrapped->field_first_name->value();
+    if ($value == '[surname]') $_POST[$key] = $user_wrapped->field_last_name->value();
   }
 
   // Step 6.
@@ -760,34 +763,45 @@ function iform_mobile_auth_authorise_request() {
 
   // Step 2.
   // Locate corresponding user
-  // @todo This area of code needs more work on D6->D7 conversion
   if (isset($GLOBALS['user']) && $GLOBALS['user']->uid > 0) {
     // User is already authenticated
     $existing_user = $GLOBALS['user'];
-    iform_mobile_auth_log('Authenticated user: '.print_r($existing_user,1));
+    iform_mobile_auth_log('User already authenticated.');
     // Skip to step 5
   }
   else {
-    $existing_user = user_load(array('mail' => $email));
-
+    if (!empty($email)) {
+      $existing_user = user_load_by_mail($email);
+    }
+  
     if (empty($email) || $existing_user == FALSE)
-    {
-      if (empty($email)) $email = "app@mobile.net";
-      iform_mobile_auth_log('No corresponding user found with email');
-      $existing_user = (object)array("uid" => 0,
-        profile_indicia_user_id => "1",
+    { // Submit records from unkown users anonymously.
+      if (empty($email)) {
+        $email = "app@mobile.net";
+        iform_mobile_auth_log('Submitting anonymously as no email supplied');
+      }
+      else {
+        iform_mobile_auth_log("Submitting anonymously as no user could be found for $email");
+      }
+      
+      // Create a user 
+      $user_details = array("uid" => 0,
         "name" => $email,
-        "mail" => $email,
-        'profile_first_name' => "Anonymous",
-        'profile_last_name' => "Anonymous");
+        "mail" => $email);
+      $user_details['field_first_name'][LANGUAGE_NONE][0]['value'] = "Anonymous";
+      $user_details['field_last_name'][LANGUAGE_NONE][0]['value'] = "Anonymous";
+      $user_details['field_indicia_user_id'][LANGUAGE_NONE][0]['value'] = 1;
+      $existing_user = (object)$user_details;
     }
     else
     {
-      // load profile fields
-      profile_load_profile($existing_user);
+      // wrap user for ease of accessing fields
+      $user_wrapped = entity_metadata_wrapper('user', $existing_user);
+      
       // Step 3.
       // Verify USER shared secret...
-      if (empty($usersecret) || $usersecret != $existing_user->profile_indicia_mobile_auth_shared_secret)
+      if (empty($usersecret) || 
+          $usersecret != $user_wrapped->field_iform_auth_shared_secret->value())
       {
         drupal_add_http_header('Status', '400 Bad Request');
         print 'Bad request';
@@ -803,10 +817,11 @@ function iform_mobile_auth_authorise_request() {
         print 'User not activated';
         return FALSE;
       }
+      iform_mobile_auth_log('User authenticated');
     }
   }
   // assign this user to gobal user var so that it can be added to the indicia submission
-  iform_mobile_auth_log(print_r($existing_user,1));
+  iform_mobile_auth_log(print_r($existing_user, 1));
   $GLOBALS['user'] = $existing_user;
   return $existing_user;
 }

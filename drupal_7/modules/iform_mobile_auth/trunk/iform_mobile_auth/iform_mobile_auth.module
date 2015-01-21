@@ -154,6 +154,24 @@ function iform_mobile_auth_menu() {
 }
 
 /**
+ * Implementation of hook_mail().
+ */
+function iform_mobile_auth_mail($key, &$message, $params) {
+
+  switch($key) {
+    case 'register':
+      global $base_url;
+      $activation_url = "{$base_url}/user/mobile/activate/{$params['uid']}/{$params['confirmation_code']}";
+      $subject = variable_get('iform_mobile_auth_registration_subject', "Welcome to !site");
+      $body = variable_get('iform_mobile_auth_registration_body', "Activate your account by visiting the following page in your web browser:!activation_url");
+
+      $message['subject'] = t($subject, array("!site" => variable_get('site_name', "Indicia")));
+      $message['body'][] = t($body, array("!activation_url" => $activation_url));
+     break;      
+  } 
+}
+
+/**
  * This function handles the register/login request from a mobile app.
  * The function either returns a HTTP error status code or the user's secret token
  */
@@ -161,15 +179,11 @@ function iform_mobile_auth_user_register() {
 
   drupal_add_http_header('Content-type', 'text/plain; charset=UTF-8');
 
-  // initalise variables...
-  $category = 'Indicia';
-
   // setup the profile fields
   $shared_secret_field = 'field_iform_auth_shared_secret';
   $firstname_field = 'field_first_name';
   $secondname_field = 'field_last_name';
   $indicia_id_field = 'field_indicia_user_id';
-  $confirmation_code_field = 'field_confirmation_code';
 
   iform_mobile_auth_log('iform_mobile_auth_user_register');
   iform_mobile_auth_log(print_r($_POST,1));
@@ -316,20 +330,9 @@ function iform_mobile_auth_user_register() {
   // generate the user confirmation code returned via email
   $confirmation_code = iform_mobile_auth_generate_random_string(20);
 
-  $user_details = array('pass' => $password, /* handles the (unsalted) hash process */
-    'name' => $email,
-    'mail' => $email);
-
-  $new_user = user_save(NULL,$user_details);
-  $new_user_obj = entity_metadata_wrapper('user', $new_user);
-
-  // Step 7.
-  // Associate indicia_id with user account
-
-  // Look up indicia id... although easy_login will also do this in its
-  // hook_user_update if it is enabled.
-  $indicia_user_id = iform_mobile_auth_get_user_id($email, $firstname, $secondname, $new_user->uid);
-
+  // Look up indicia id. No need to send cms_id as this is a new user so they
+  // cannot have any old records under this id to merge.
+  $indicia_user_id = iform_mobile_auth_get_user_id($email, $firstname, $secondname);
   $error = '';
   // handle iform_mobile_auth_get_user_id returning an error
   if (!is_int($indicia_user_id))
@@ -338,39 +341,27 @@ function iform_mobile_auth_user_register() {
     $error = $indicia_user_id;
   }
 
-  // save all the user fields
-  $new_user_obj->$firstname_field->set($firstname);
-  $new_user_obj->$secondname_field->set($secondname);
-  $new_user_obj->$indicia_id_field->set($indicia_user_id);
-  $new_user_obj->$shared_secret_field->set($usersecret);
-  $new_user_obj->$confirmation_code_field->set($confirmation_code);
-  $new_user_obj->save();
-
+  $user_details = array('pass' => $password, /* handles the (unsalted) hash process */
+    'name' => $email,
+    'mail' => $email);
+  $user_details['field_first_name'][LANGUAGE_NONE][0]['value'] = $firstname;
+  $user_details['field_last_name'][LANGUAGE_NONE][0]['value'] = $secondname;
+  $user_details['field_iform_auth_shared_secret'][LANGUAGE_NONE][0]['value'] = $usersecret;
+  $user_details['field_confirmation_code'][LANGUAGE_NONE][0]['value'] = $confirmation_code;
+  $user_details['field_indicia_user_id'][LANGUAGE_NONE][0]['value'] = $indicia_user_id;
+    
+  $new_user = user_save(NULL, $user_details);
+  $new_user_obj = entity_metadata_wrapper('user', $new_user);
+          
   // Step 8.
   // Send activation mail
-  global $base_url;
-  $activation_url = $base_url . '/user/mobile/activate/' . $new_user->uid . '/' . $confirmation_code;
-
-  $from = variable_get('site_mail', ini_get('sendmail_from'));
-  $subject = variable_get('iform_mobile_auth_registration_subject', "Welcome to !site");
-  $body = variable_get('iform_mobile_auth_registration_body', "Activate your account by clicking on the following link:<br/>!activation_url");
-
-  $headers = array(
-    'MIME-Version' => '1.0',
-    'Content-Type' => 'text/html; charset=UTF-8; format=flowed',
-    'Content-Transfer-Encoding' => '8Bit',
-    'X-Mailer' => 'Drupal',
-    'From' => $from,
-  );
-
-  $message = array(
-    'to' => $email,
-    'subject' => t($subject,array("!site" => variable_get('site_name', "Indicia"))),
-    'body' => t($body, array("!activation_url" => $activation_url)),
-    'headers' => $headers,
-  );
-
-  drupal_mail_send($message);
+  $params['uid'] = $new_user->uid;
+  $params['confirmation_code'] = $confirmation_code; 
+  drupal_mail('iform_mobile_auth', 
+          'register', 
+          $email, 
+          user_preferred_language($new_user), 
+          $params);
 
   // return the user's secret and name to be stored by app
   print $new_user_obj->$shared_secret_field->value();
@@ -394,15 +385,14 @@ function iform_mobile_auth_user_activate($uid, $code)
 
   $user = user_load(intval($uid));
   $user_obj = entity_metadata_wrapper('user', $user);
-  $key = 'profile_confirmation_code';
-  $category = iform_mobile_auth_profile_fields()->$key->category;
-  if ($user->$key == $code)
+  $key = 'field_confirmation_code';
+  if ($user_obj->$key->value() == $code)
   {
     iform_mobile_auth_log("Activating user ".$uid." with code ".$code."");
 
     $user_obj->$key->set(NULL);
+    $user_obj->status->set(1);
     $user_obj->save();
-    user_save($user,array('status' => 1));
 
     $path = variable_get('iform_mobile_auth_registration_redirect', "<front>");
 
@@ -956,7 +946,7 @@ function iform_mobile_auth_generate_random_string($length = 10)
  * @param $cms_id
  * @return int
  */
-function iform_mobile_auth_get_user_id($email, $firstname, $secondname, $cms_id)
+function iform_mobile_auth_get_user_id($email, $firstname, $secondname, $cms_id = NULL)
 {
   // get connection/indicia website details
   $connection = iform_get_connection_details(NULL);
@@ -975,7 +965,9 @@ function iform_mobile_auth_get_user_id($email, $firstname, $secondname, $cms_id)
     $postargs['auth_token'] = sha1($nonce.":".$connection['password']);
     $postargs['surname'] = $secondname;
     $postargs['first_name'] = $firstname;
-    $postargs['cms_user_id'] = $cms_id;
+    if (isset($cms_id)) {
+      $postargs['cms_user_id'] = $cms_id;
+    }
     $postargs['force'] = 'split';
     $postargs['nonce'] = $nonce;
 

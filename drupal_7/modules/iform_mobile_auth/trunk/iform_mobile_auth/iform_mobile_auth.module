@@ -7,23 +7,22 @@
 
 require 'phpass/PasswordHash.php';
 
-//Module configuration's URL path
-define('CONFIG_PATH', 'admin/config/iform');
+// Module configuration's URL path.
+define('IFORM_MOBILE_AUTH_CONFIG_PATH', 'admin/config/iform/mobile');
 
-/*
- * Implements hook_permission()
- * @return array
+/**
+ * Implements hook_permission().
  */
-function iform_mobile_auth_permission(){
+function iform_mobile_auth_permission() {
   return array(
     'admin mobile auth' => array(
       'title' => t('View the administrative dashbord'),
-      'description' => t('Allows to reach the administrative dashboard and so manage it.')
+      'description' => t('Allows to reach the administrative dashboard and so manage it.'),
     ),
     'user mobile auth' => array(
       'title' => t('View personal dashboard'),
-      'description' => t('View personal mobile authentication dashboard, to manage personal assigned information.')
-    )
+      'description' => t('View personal mobile authentication dashboard, to manage personal assigned information.'),
+    ),
   );
 }
 
@@ -31,100 +30,65 @@ function iform_mobile_auth_permission(){
 /*
  * Submit the relevant information to indicia
  */
-if(module_exists('iform')) {
+if (module_exists('iform')) {
   iform_load_helpers(array('data_entry_helper'));
 }
 
 /**
- * Generates a list of user fields
- * @return object
- */
-function iform_mobile_auth_user_fields(){
-  return (object)array(
-    'field_indicia_user_id' => (object)array(
-      'type' => 'number_integer',
-      'title' => 'User ID for this account on the warehouse',
-      'name' => 'field_indicia_user_id',
-    ),
-    'field_first_name' => (object)array(
-      'type' => 'text',
-      'title' => 'User\'s first name',
-      'name' => 'field_first_name',
-    ),
-    'field_last_name' => (object)array(
-      'type' => 'text',
-      'title' => 'User\'s last name',
-      'name' => 'field_last_name',
-      'required' => TRUE
-    ),
-    'field_iform_auth_shared_secret' => (object)array(
-      'type' => 'text',
-      'title' => 'User shared secret',
-      'name' => 'field_iform_auth_shared_secret',
-    ),
-    'field_confirmation_code' => (object)array(
-      'type' => 'text',
-      'title' => 'One-time login code for mobile registered user',
-      'name' => 'field_confirmation_code',
-    )
-  );
-}
-
-/**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function iform_mobile_auth_menu() {
   $items = array();
 
-  // Mobile registration-based actions
+  // Mobile registration-based actions.
   $items['user/mobile/register'] = array(
     'title'             => 'Accepts a request to register or handles login',
     'type'              => MENU_CALLBACK,
     'page callback'     => 'iform_mobile_auth_user_register',
-    'access callback'   => true,
+    'access callback'   => TRUE,
   );
   $items['user/mobile/activate/%/%'] = array(
     'title'             => 'Handle account activation',
     'type'              => MENU_CALLBACK,
     'page callback'     => 'iform_mobile_auth_user_activate',
-    'page arguments'    => array(3,4),
-    'access callback'   => true,
+    'page arguments'    => array(3, 4),
+    'access callback'   => TRUE,
   );
-  // Mobile based record submission
+  // Mobile based record submission.
   $items['mobile/submit'] = array(
     'title'             => 'Submit a sample',
     'page callback'     => 'iform_mobile_auth_client_submission',
-    'access callback'   => true,
+    'access callback'   => TRUE,
   );
-  // Mobile based record submission
+  // Mobile based service access.
   $items['mobile/services'] = array(
-    'title'             => 'Submit a sample',
+    'title'             => 'Access a service',
     'page callback'     => 'iform_mobile_auth_services',
-    'access callback'   => true,
+    'access callback'   => TRUE,
   );
-  // Mobile based report access
+  // Mobile based report access.
   $items['mobile/report'] = array(
     'title'             => 'Access a report',
     'page callback'     => 'iform_mobile_auth_report',
-    'access callback'   => true,
+    'access callback'   => TRUE,
   );
   $items['mobile/log'] = array(
     'title'             => 'Accepts an app request to log data.',
     'page callback'     => 'iform_mobile_auth_log_submission',
-    'access callback'   => true,
+    'access callback'   => TRUE,
   );
-  //User Interface options
-  //Dashboard
-  $items[CONFIG_PATH . '/mobile'] = array(
+  // User Interface options.
+  // Dashboard.
+  $items[IFORM_MOBILE_AUTH_CONFIG_PATH] = array(
     'title' => 'Mobile Authentication',
-    'description' =>  'Configure variables relating to the mobile authorisation module',
+    'description' => 'Configure variables relating to the mobile authorisation module',
     'page callback' => 'iform_mobile_auth_dashboard',
     'access arguments' => array('user mobile auth'),
     'file' => 'iform_mobile_auth.admin.inc',
     'type' => MENU_LOCAL_TASK,
   );
-  //Add
-  $items[CONFIG_PATH . '/mobile/add'] = array(
+  // Add.
+  $items[IFORM_MOBILE_AUTH_CONFIG_PATH . '/add'] = array(
     'title' => 'Mobile Authentication',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('iform_mobile_auth_app'),
@@ -132,8 +96,8 @@ function iform_mobile_auth_menu() {
     'file' => 'iform_mobile_auth.admin.inc',
     'type' => MENU_CALLBACK,
   );
-  //Edit
-  $items[CONFIG_PATH . '/mobile/%iform_mobile_auth_app'] = array(
+  // Edit.
+  $items[IFORM_MOBILE_AUTH_CONFIG_PATH . '/%iform_mobile_auth_app'] = array(
     'title' => 'App settings',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('iform_mobile_auth_app', 4),
@@ -141,8 +105,8 @@ function iform_mobile_auth_menu() {
     'file' => 'iform_mobile_auth.admin.inc',
     'type' => MENU_CALLBACK,
   );
-  //Delete
-  $items[CONFIG_PATH . '/mobile/delete/%iform_mobile_auth_app'] = array(
+  // Delete.
+  $items[IFORM_MOBILE_AUTH_CONFIG_PATH . '/delete/%iform_mobile_auth_app'] = array(
     'title' => 'Delete App',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('iform_mobile_auth_delete', 5),
@@ -154,11 +118,11 @@ function iform_mobile_auth_menu() {
 }
 
 /**
- * Implementation of hook_mail().
+ * Implements hook_mail().
  */
 function iform_mobile_auth_mail($key, &$message, $params) {
 
-  switch($key) {
+  switch ($key) {
     case 'register':
       global $base_url;
       $activation_url = "{$base_url}/user/mobile/activate/{$params['uid']}/{$params['confirmation_code']}";
@@ -167,28 +131,30 @@ function iform_mobile_auth_mail($key, &$message, $params) {
 
       $message['subject'] = t($subject, array("!site" => variable_get('site_name', "Indicia")));
       $message['body'][] = t($body, array("!activation_url" => $activation_url));
-     break;      
-  } 
+      break;
+  }
 }
 
 /**
  * This function handles the register/login request from a mobile app.
- * The function either returns a HTTP error status code or the user's secret token
+ * 
+ * The function either returns a HTTP error status code or the user's secret 
+ * token
  */
 function iform_mobile_auth_user_register() {
 
   drupal_add_http_header('Content-type', 'text/plain; charset=UTF-8');
 
-  // setup the profile fields
+  // Setup the profile fields.
   $shared_secret_field = 'field_iform_auth_shared_secret';
   $firstname_field = 'field_first_name';
   $secondname_field = 'field_last_name';
   $indicia_id_field = 'field_indicia_user_id';
 
   iform_mobile_auth_log('iform_mobile_auth_user_register');
-  iform_mobile_auth_log(print_r($_POST,1));
+  iform_mobile_auth_log(print_r($_POST, 1));
 
-  // pull out parameters from POST request
+  // Pull out parameters from POST request.
   $firstname = empty($_POST['firstname']) ? '' : $_POST['firstname'];
   $secondname = empty($_POST['secondname']) ? '' : $_POST['secondname'];
   $email = $_POST['email'];
@@ -197,9 +163,8 @@ function iform_mobile_auth_user_register() {
   $provided_appname = $_POST['appname'];
 
   // Step 1.
-  // Check minimum valid parameters
-  if (empty($email) || empty($password) || empty($provided_appsecret))
-  {
+  // Check minimum valid parameters.
+  if (empty($email) || empty($password) || empty($provided_appsecret)) {
     drupal_add_http_header('Status', '400 Bad Request');
     print 'Bad request';
     iform_mobile_auth_log('Missing parameter');
@@ -207,9 +172,9 @@ function iform_mobile_auth_user_register() {
   }
 
   // Step 2.
-  // Reject submissions with an incorrect secret (or instances where secret is not set)
-  if (!iform_mobile_auth_authorise_app($provided_appname, $provided_appsecret))
-  {
+  // Reject submissions with an incorrect secret (or instances where secret is
+  // not set).
+  if (!iform_mobile_auth_authorise_app($provided_appname, $provided_appsecret)) {
     iform_mobile_auth_log("Missing or incorrect shared app secret $provided_appname:$provided_appsecret");
     drupal_add_http_header('Status', '400 Bad Request');
     print 'Bad request';
@@ -217,9 +182,8 @@ function iform_mobile_auth_user_register() {
   }
 
   // Step 3.
-  // Check email is valid
-  if (valid_email_address($email) != 1)
-  {
+  // Check email is valid.
+  if (valid_email_address($email) != 1) {
     iform_mobile_auth_log('Invalid email');
     drupal_add_http_header('Status', '400 Bad Request');
     print 'Invalid email';
@@ -227,9 +191,8 @@ function iform_mobile_auth_user_register() {
   }
 
   // Step 3.
-  // Apply a password strength requirement
-  if (iform_mobile_auth_validate_password($password) != 1)
-  {
+  // Apply a password strength requirement.
+  if (iform_mobile_auth_validate_password($password) != 1) {
     iform_mobile_auth_log('Password not strong enough');
     drupal_add_http_header('Status', '400 Bad Request');
     print 'Invalid password';
@@ -237,55 +200,50 @@ function iform_mobile_auth_user_register() {
   }
 
   // Step 4.
-  // Check for an existing user. If found (and password matches) return the secret to all user to 'log in' via app
+  // Check for an existing user. If found (and password matches) return the
+  // secret to all user to 'log in' via app.
   $existing_user = user_load_by_mail($email);
-  if ($existing_user)
-  {
-    // Email already exists
+  if ($existing_user) {
+    // Email already exists.
     $existing_user_obj = entity_metadata_wrapper('user', $existing_user);
     require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'includes/password.inc');
-    if (!user_check_password($password, $existing_user))
-    {
+    if (!user_check_password($password, $existing_user)) {
       drupal_add_http_header('Status', '401 Unauthorized');
       print 'Invalid password';
       iform_mobile_auth_log('Invalid password');
     }
-    else
-    {
+    else {
       $secret = $existing_user_obj->$shared_secret_field->value();
-      if (empty($secret))
-      {
-        // create a new user-secret if this user doesn't already have one
-        // (they registered directly with the site)
+      if (empty($secret)) {
+        // Create a new user-secret if this user doesn't already have one
+        // (they registered directly with the site).
         iform_mobile_auth_log('Creating new shared secret');
         $usersecret = iform_mobile_auth_generate_random_string(10);
         $existing_user_obj->$shared_secret_field->set($usersecret);
         $existing_user_obj->save();
       }
 
-      // check if the user has submitted names (they are creating a new account by accident)
-      if (!empty($firstname) || !empty($secondname))
-      {
+      // Check if the user has submitted names (they are creating a new account
+      // by accident).
+      if (!empty($firstname) || !empty($secondname)) {
         drupal_add_http_header('Status', '409 Conflict');
         print 'First or second name missmatch';
         iform_mobile_auth_log('First or second name missmatch');
         return;
       }
-      else
-      {
+      else {
         $error = '';
 
-        // Check for existing users that do not have indicia id in their profile field
-        $indicia_user_id=$existing_user_obj->$indicia_id_field->value();
-        if (empty($indicia_user_id) || $indicia_user_id == -1)
-        {
+        // Check for existing users that do not have indicia id in their profile
+        // field.
+        $indicia_user_id = $existing_user_obj->$indicia_id_field->value();
+        if (empty($indicia_user_id) || $indicia_user_id == -1) {
           iform_mobile_auth_log('Associating indicia user id');
-          // Look up indicia id...
+          // Look up indicia id.
           $indicia_user_id = iform_mobile_auth_get_user_id($existing_user_obj->mail->value(),
             $existing_user_obj->$firstname_field->value(),
             $existing_user_obj->$secondname_field->value(),
             $existing_user_obj->uid->value());
-
 
           if (is_int($indicia_user_id)) {
             $existing_user_obj->$indicia_id_field->set($indicia_user_id);
@@ -296,7 +254,7 @@ function iform_mobile_auth_user_register() {
           }
         }
 
-        // return the user's secret and name to be stored by app
+        // Return the user's secret and name to be stored by app.
         print $existing_user_obj->$shared_secret_field->value();
         print "\n";
         print $existing_user_obj->$firstname_field->value();
@@ -311,10 +269,9 @@ function iform_mobile_auth_user_register() {
   }
 
   // Step 5.
-  // User is registering for first time. Require first and second name
+  // User is registering for first time. Require first and second name.
 
-  if (empty($firstname) || empty($secondname))
-  {
+  if (empty($firstname) || empty($secondname)) {
     drupal_add_http_header('Status', '400 Bad Request');
     print 'Missing name parameter';
     iform_mobile_auth_log('First or second name empty');
@@ -322,26 +279,26 @@ function iform_mobile_auth_user_register() {
   }
 
   // Step 6.
-  // Create account for user
+  // Create account for user.
 
-  // generate the user's shared secret returned to the app
+  // Generate the user's shared secret returned to the app.
   $usersecret = iform_mobile_auth_generate_random_string(10);
 
-  // generate the user confirmation code returned via email
+  // Generate the user confirmation code returned via email.
   $confirmation_code = iform_mobile_auth_generate_random_string(20);
 
   // Look up indicia id. No need to send cms_id as this is a new user so they
   // cannot have any old records under this id to merge.
   $indicia_user_id = iform_mobile_auth_get_user_id($email, $firstname, $secondname);
   $error = '';
-  // handle iform_mobile_auth_get_user_id returning an error
-  if (!is_int($indicia_user_id))
-  {
+  // Handle iform_mobile_auth_get_user_id returning an error.
+  if (!is_int($indicia_user_id)) {
     $indicia_user_id = -1;
     $error = $indicia_user_id;
   }
 
-  $user_details = array('pass' => $password, /* handles the (unsalted) hash process */
+  $user_details = array(
+    'pass' => $password, /* handles the (unsalted) hash process */
     'name' => $email,
     'mail' => $email);
   $user_details['field_first_name'][LANGUAGE_NONE][0]['value'] = $firstname;
@@ -349,21 +306,21 @@ function iform_mobile_auth_user_register() {
   $user_details['field_iform_auth_shared_secret'][LANGUAGE_NONE][0]['value'] = $usersecret;
   $user_details['field_confirmation_code'][LANGUAGE_NONE][0]['value'] = $confirmation_code;
   $user_details['field_indicia_user_id'][LANGUAGE_NONE][0]['value'] = $indicia_user_id;
-    
+
   $new_user = user_save(NULL, $user_details);
   $new_user_obj = entity_metadata_wrapper('user', $new_user);
-          
+
   // Step 8.
-  // Send activation mail
+  // Send activation mail.
   $params['uid'] = $new_user->uid;
-  $params['confirmation_code'] = $confirmation_code; 
-  drupal_mail('iform_mobile_auth', 
-          'register', 
-          $email, 
-          user_preferred_language($new_user), 
+  $params['confirmation_code'] = $confirmation_code;
+  drupal_mail('iform_mobile_auth',
+          'register',
+          $email,
+          user_preferred_language($new_user),
           $params);
 
-  // return the user's secret and name to be stored by app
+  // Return the user's secret and name to be stored by app.
   print $new_user_obj->$shared_secret_field->value();
   print "\n";
   print $new_user_obj->$firstname_field->value();
@@ -375,42 +332,42 @@ function iform_mobile_auth_user_register() {
 
 
 /**
- * Handles the request for account activation
- * @param $uid
- * @param $code
+ * Handles the request for account activation.
+ * 
+ * @param string $uid
+ *   Value from url which should be a user id.
+ * @param string $code
+ *   Value from url which should be corresponding activation
+ * code.
  */
-function iform_mobile_auth_user_activate($uid, $code)
-{
+function iform_mobile_auth_user_activate($uid, $code) {
   drupal_add_http_header('Content-type', 'text/plain; charset=UTF-8');
 
   $user = user_load(intval($uid));
   $user_obj = entity_metadata_wrapper('user', $user);
   $key = 'field_confirmation_code';
-  if ($user_obj->$key->value() == $code)
-  {
-    iform_mobile_auth_log("Activating user ".$uid." with code ".$code."");
+  if ($user_obj->$key->value() === $code) {
+    // Values match so activate account.
+    iform_mobile_auth_log("Activating user $uid with code $code.");
 
     $user_obj->$key->set(NULL);
     $user_obj->status->set(1);
     $user_obj->save();
 
+    // Redirect to page of admin's choosing.
     $path = variable_get('iform_mobile_auth_registration_redirect', "<front>");
-
-    // redirect to page of admin's choosing
     drupal_goto($path);
   }
-  else
-  {
+  else {
+    // Values did not match so redirect to page of admin's choosing.
     $path = variable_get('iform_mobile_auth_registration_redirect_unsuccessful', "<front>");
-
-    // redirect to page of admin's choosing
     drupal_goto($path);
   }
 }
 
 
 /**
- * Handles record submissions from mobile apps
+ * Handles record submissions from mobile apps.
  */
 function iform_mobile_auth_client_submission() {
 
@@ -418,87 +375,98 @@ function iform_mobile_auth_client_submission() {
 
   iform_mobile_auth_log('iform_mobile_auth_client_submission');
   iform_mobile_auth_log('POST REQUEST');
-  iform_mobile_auth_log(print_r($_POST,1));
+  iform_mobile_auth_log(print_r($_POST, 1));
 
-  // Steps 1 to 4 are covered in the request authorisation
+  // Steps 1 to 4 are covered in the request authorisation.
   if (!$existing_user = iform_mobile_auth_authorise_request()) {
     return;
   }
-  // Wrap user for easier access to fields
+  // Wrap user for easier access to fields.
   $user_wrapped = entity_metadata_wrapper('user', $existing_user);
-        
+
   $safe_website_id = intval($_POST['website_id']);
-  if ($safe_website_id == 0 || 
+  if ($safe_website_id == 0 ||
           $safe_website_id != variable_get('indicia_website_id', '')) {
     drupal_add_http_header('Status', '400 Bad Request');
     print 'Bad request';
     iform_mobile_auth_log('Missing or incorrect website_id');
-    return;  
+    return;
   }
   $safe_survey_id = intval($_POST['survey_id']);
   if ($safe_survey_id == 0) {
     drupal_add_http_header('Status', '400 Bad Request');
     print 'Bad request';
     iform_mobile_auth_log('Missing or incorrect survey_id');
-    return;    
+    return;
   }
 
   // Step 5.
-  // Replace user parameters in submission
-  foreach ($_POST as $key => $value)
-  {
-    if ($value == '[userid]') $_POST[$key] = $existing_user->uid;
-    if ($value == '[username]') $_POST[$key] = $existing_user->name;
-    if ($value == '[email]') $_POST[$key] = $existing_user->mail;
-    if ($value == '[firstname]') $_POST[$key] = $user_wrapped->field_first_name->value();
-    if ($value == '[surname]') $_POST[$key] = $user_wrapped->field_last_name->value();
+  // Replace user parameters in submission.
+  foreach ($_POST as $key => $value) {
+    if ($value == '[userid]') {
+      $_POST[$key] = $existing_user->uid;
+    }
+    if ($value == '[username]') {
+      $_POST[$key] = $existing_user->name;
+    }
+    if ($value == '[email]') {
+      $_POST[$key] = $existing_user->mail;
+    }
+    if ($value == '[firstname]') {
+      $_POST[$key] = $user_wrapped->field_first_name->value();
+    }
+    if ($value == '[surname]') {
+      $_POST[$key] = $user_wrapped->field_last_name->value();
+    }
   }
 
   // Step 6.
-  // Proceed to process the submission...
+  // Proceed to process the submission.
 
-  // get connection/indicia website details
+  // Get connection/indicia website details.
   $connection = iform_get_connection_details(NULL);
 
   $postargs = array();
   $postargs['website_id'] = $safe_website_id;
 
-  // obtain nonce
-  $curl_check = data_entry_helper::http_post(helper_config::$base_url.'index.php/services/security/get_nonce', $postargs, false);
+  // Obtain nonce.
+  $curl_check = data_entry_helper::http_post(
+          helper_config::$base_url . 'index.php/services/security/get_nonce',
+          $postargs,
+          FALSE);
 
   if (isset($curl_check['result'])) {
 
     if (isset($_FILES['photo1'])) {
-      // rename attached file to be picked up correctly
+      // Rename attached file to be picked up correctly.
       $_FILES['occurrence:image:1'] = $_FILES['photo1'];
 
-      // mobile generated files can have file name in format resize.jpg?1333102276814
-      // which will fail the warehouse submission process
-      if (strstr($_FILES['occurrence:image:1']['type'],'jpg') !== FALSE ||
-        strstr($_FILES['occurrence:image:1']['type'],'jpeg') !== FALSE)
-      {
-        $_FILES['occurrence:image:1']['name'] = uniqid().'.jpg';
+      // Mobile generated files can have file name in format
+      // resize.jpg?1333102276814 which will fail the warehouse submission
+      // process.
+      if (strstr($_FILES['occurrence:image:1']['type'], 'jpg') !== FALSE ||
+        strstr($_FILES['occurrence:image:1']['type'], 'jpeg') !== FALSE) {
+        $_FILES['occurrence:image:1']['name'] = uniqid() . '.jpg';
       }
-      if (strstr($_FILES['occurrence:image:1']['type'],'png') !== FALSE)
-      {
-        $_FILES['occurrence:image:1']['name'] = uniqid().'.png';
+      if (strstr($_FILES['occurrence:image:1']['type'], 'png') !== FALSE) {
+        $_FILES['occurrence:image:1']['name'] = uniqid() . '.png';
       }
       unset($_FILES['photo1']);
-      iform_mobile_auth_log(print_r($_FILES,1));
+      iform_mobile_auth_log(print_r($_FILES, 1));
     }
 
-    $nonce =  $curl_check['output'];
+    $nonce = $curl_check['output'];
 
-    // construct post parameter array
+    // Construct post parameter array.
     $params = array();
 
-    // general info
+    // General info.
     $params['website_id'] = $safe_website_id;
     $params['survey_id'] = $safe_survey_id;
-    $params['auth_token'] = sha1($nonce.":".$connection['password']);
+    $params['auth_token'] = sha1($nonce . ":" . $connection['password']);
     $params['nonce'] = $nonce;
 
-    // Obtain coordinates of location if a name is specified
+    // Obtain coordinates of location if a name is specified.
     $georeftype = iform_mobile_auth_escape($_POST['sample:entered_sref_system']);
 
     $ref = trim(iform_mobile_auth_escape($_POST['sample:entered_sref']));
@@ -506,110 +474,103 @@ function iform_mobile_auth_client_submission() {
     unset($_POST['sample:entered_sref_system']);
     unset($_POST['sample:entered_sref']);
 
-    if ($georeftype == 'text')
-    {
-      // geocode the submitted location
-      $baseGoogle = "http://maps.googleapis.com/maps/api/geocode/json?region=uk&sensor=false&address=";
-      $url = $baseGoogle . urlencode($ref);
+    if ($georeftype == 'text') {
+      // Geocode the submitted location.
+      $base_google = "http://maps.googleapis.com/maps/api/geocode/json?region=uk&sensor=false&address=";
+      $url = $base_google . urlencode($ref);
 
       $session = curl_init();
       curl_setopt($session, CURLOPT_URL, $url);
-      curl_setopt($session, CURLOPT_HEADER, false);
-      curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($session, CURLOPT_HEADER, FALSE);
+      curl_setopt($session, CURLOPT_RETURNTRANSFER, TRUE);
 
-      // Do the POST
+      // Do the POST.
       $response = curl_exec($session);
 
       iform_mobile_auth_log($response);
 
-      // close cURL resource
+      // Close cURL resource.
       curl_close($session);
 
       $loc = json_decode($response);
 
       $loc = $loc->results[0]->geometry->location;
-      if(isset($loc)) $ref = $loc->lat.",".$loc->lng;
-      else $ref = "0,0"; // default location if unable to geocode
+      if (isset($loc)) {
+        $ref = $loc->lat . "," . $loc->lng;
+      }
+      else {
+        // Default location if unable to geocode.
+        $ref = "0,0";
+      }
 
       $georeftype = 4326;
     }
 
-    // enter sample info
+    // Enter sample info.
     $params['sample:entered_sref'] = $ref;
     $params['sample:entered_sref_system'] = $georeftype;
     $params['sample:geom'] = '';
     $params['gridmode'] = 'true';
 
-    // enter occurrence info
+    // Enter occurrence info.
     $params['occurrence:present'] = 'on';
     $params['occurrence:record_status'] = 'C';
 
-    $isOccurrencesList = FALSE;
-    // add all supplied data
-    foreach ($_POST as $key => $value)
-    {
-      if (strstr($key,'smpAttr:') != FALSE)
-      {
+    $is_occurrence_list = FALSE;
+    // Add all supplied data.
+    foreach ($_POST as $key => $value) {
+      if (strstr($key, 'smpAttr:') != FALSE) {
         $params[$key] = iform_mobile_auth_escape($value);
       }
-      elseif (strstr($key,'occAttr:') != FALSE)
-      {
+      elseif (strstr($key, 'occAttr:') != FALSE) {
         $params[$key] = iform_mobile_auth_escape($value);
       }
-      elseif (strstr($key,'sample:') != FALSE)
-      {
+      elseif (strstr($key, 'sample:') != FALSE) {
         $params[$key] = iform_mobile_auth_escape($value);
       }
-      elseif (strstr($key,'occurrence:') != FALSE)
-      {
+      elseif (strstr($key, 'occurrence:') != FALSE) {
         $params[$key] = iform_mobile_auth_escape($value);
       }
-      elseif (strstr($key,'sc:') != FALSE)
-      {
-        // sc: params indicate a list submission
-        $isOccurrencesList = TRUE;
+      elseif (strstr($key, 'sc:') != FALSE) {
+        // sc: params indicate a list submission.
+        $is_occurrence_list = TRUE;
         $params[$key] = iform_mobile_auth_escape($value);
       }
     }
 
-    if ($isOccurrencesList)
-    {
+    if ($is_occurrence_list) {
       $submission = data_entry_helper::build_sample_occurrences_list_submission($params);
     }
-    else
-    {
+    else {
       $submission = data_entry_helper::build_sample_occurrence_submission($params);
     }
 
     iform_mobile_auth_log('Sending the following fields:');
-    foreach ($params as $key => $value)
-    {
+    foreach ($params as $key => $value) {
       iform_mobile_auth_log($key . '=>' . $value);
     }
 
-    $writeTokens = array();
-    $writeTokens['auth_token'] = sha1($nonce.":".$connection['password']);
-    $writeTokens['nonce'] = $nonce;
+    $write_tokens = array();
+    $write_tokens['auth_token'] = sha1($nonce . ":" . $connection['password']);
+    $write_tokens['nonce'] = $nonce;
 
-    // send record to indicia
-    $output = data_entry_helper::forward_post_to('sample', $submission, $writeTokens);
+    // Send record to indicia.
+    $output = data_entry_helper::forward_post_to('sample', $submission, $write_tokens);
 
-    if (isset($output['error']))
-    {
-      // something went wrong
+    if (isset($output['error'])) {
+      // Something went wrong.
       drupal_add_http_header('Status', '502 Bad Gateway');
       print "The server reported the following error:<br/>";
       print $output['error'] . "<br/>";
-      foreach($output['errors'] as $error) {
+      foreach ($output['errors'] as $error) {
         print "$error<br/>";
       }
     }
 
-    iform_mobile_auth_log(print_r($output,1));
+    iform_mobile_auth_log(print_r($output, 1));
   }
-  else
-  {
-    // something went wrong in obtaining nonce
+  else {
+    // Something went wrong in obtaining nonce.
     drupal_add_http_header('Status', '502 Bad Gateway');
     print_r($curl_check);
     iform_mobile_auth_log($curl_check);
@@ -617,104 +578,109 @@ function iform_mobile_auth_client_submission() {
 }
 
 /**
- * Menu function to retrieve the results of a report which responds to the mobile/report
- * web service endpoint.
+ * Menu function to retrieve the results of a report.
  *
- * Parameters can be provided as GET or POST data, since POST is required when supporting long parameter values for
- * geometry filters. Requires the following query parameters:
- * * report - the path to the report file to run on the warehouse, e.g. 'library/totals/filterable_species_occurrence_image_counts.xml'
+ * Parameters can be provided as GET or POST data, since POST is required when
+ * supporting long parameter values for geometry filters. Requires the following
+ * query parameters:
+ * * report - the path to the report file to run on the warehouse, 
+ *   e.g. 'library/totals/filterable_species_occurrence_image_counts.xml'
  * * email - the logged in user's email, used for authentication
  * * usersecret - the user secret key, used for authentication
  * * appsecret - the shared app secret key, used for authentication.
- * * caching - optional setting to define the caching mode which defaults to false (no caching).
- *   Set to global for a single global cache entry (which cannot be used for user-specific reports)
- *   or set to perUser to cache the report on a per user basis.
- * * cacheTimeout - number of seconds before which the cache cannot expire. After this, there is a random
- *   chance of expiry on each hit. Defaults to 3600.
- * Additionally, provide a query parameter for each report parameter value, orderby, sortdir, limit or offset you wish to pass
- * to the report.
+ * * caching - optional setting to define the caching mode which defaults to 
+ *   false (no caching).
+ *   Set to global for a single global cache entry (which cannot be used for 
+ *   user-specific reports).
+ *   Set to perUser to cache the report on a per user basis.
+ * * cacheTimeout - number of seconds before which the cache cannot expire. 
+ *   After this, there is a random chance of expiry on each hit. Defaults to 
+ *   3600.
+ * Additionally, provide a query parameter for each report parameter value,
+ * orderby, sortdir, limit or offset you wish to pass to the report.
  * Prints out a JSON string for the report response.
- *
  */
 function iform_mobile_auth_report() {
-  //drupal_set_header('Content-Type: application/json; charset=UTF-8');
-  // Don't use $_REQUEST as it escapes values in strange way
+  // drupal_set_header('Content-Type: application/json; charset=UTF-8');
+  // Don't use $_REQUEST as it escapes values in strange way.
   $request = $_POST + $_GET;
   iform_mobile_auth_log('iform_mobile_auth_report');
   iform_mobile_auth_log('REQUEST');
-  iform_mobile_auth_log(print_r($request,1));
+  iform_mobile_auth_log(print_r($request, 1));
   if (empty($request['report'])) {
     print 'Bad request';
     iform_mobile_auth_log('Missing report parameter');
     return;
   }
 
-  if (!$existing_user = iform_mobile_auth_authorise_request())
+  if (!$existing_user = iform_mobile_auth_authorise_request()) {
     return;
+  }
   $connection = iform_get_connection_details(NULL);
   $auth = data_entry_helper::get_read_auth($connection['website_id'], $connection['password']);
-  $url = helper_config::$base_url.'index.php/services/report/requestReport';
+  $url = helper_config::$base_url . 'index.php/services/report/requestReport';
   $caching = !empty($request['caching']) ? $request['caching'] : 'false';
-  $cacheTimeout = !empty($request['cacheTimeout']) ? $request['cacheTimeout'] : 3600;
+  $cache_timeout = !empty($request['cacheTimeout']) ? $request['cacheTimeout'] : 3600;
   unset($request['appsecret']);
   unset($request['usersecret']);
   unset($request['email']);
   unset($request['cacheTimeout']);
   $defaults = array(
-    'reportSource' => 'local'
+    'reportSource' => 'local',
   );
-  if ($caching==='false' || $request['caching']==='perUser')
+  if ($caching === 'false' || $request['caching'] === 'perUser') {
     $request['user_id'] = $existing_user->profile_indicia_user_id;
+  }
   $request = array_merge($defaults, $auth, $request);
-  $cacheLoaded = false;
-  if ($caching!=='false') {
-    $response = data_entry_helper::cache_get($request, $cacheTimeout);
-    if ($response!==false) {
-      $response = json_decode($response, true);
-      $cacheLoaded = true;
-      print "cache read $cacheTimeout<br/>";
+  $cache_loaded = FALSE;
+  if ($caching !== 'false') {
+    $response = data_entry_helper::cache_get($request, $cache_timeout);
+    if ($response !== FALSE) {
+      $response = json_decode($response, TRUE);
+      $cache_loaded = TRUE;
+      print "cache read $cache_timeout<br/>";
     }
   }
-  if (!isset($response) || $response===false) {
+  if (!isset($response) || $response === FALSE) {
     $response = data_entry_helper::http_post($url . '?' . data_entry_helper::array_to_query_string($request));
   }
   if (isset($response['output'])) {
-    print ($response['output']);
-    if ($caching!=='false' && !$cacheLoaded ) {
-      data_entry_helper::cache_set($request, json_encode($response), $cacheTimeout);
+    print $response['output'];
+    if ($caching !== 'false' && !$cache_loaded) {
+      data_entry_helper::cache_set($request, json_encode($response), $cache_timeout);
       print ' Stored in cache.<br/> ';
     }
   }
   else {
     print 'Bad request';
-    iform_mobile_auth_log('Report returned '.print_r($response, true));
+    iform_mobile_auth_log('Report returned ' . print_r($response, TRUE));
   }
-  return;
 }
 
 /**
- *
+ * Menu function to retrieve the results of a service request.
  */
-function iform_mobile_auth_services(){
+function iform_mobile_auth_services() {
   drupal_add_http_header('Content-type', 'application/json; charset=UTF-8');
 
   $request = $_POST + $_GET;
   iform_mobile_auth_log('iform_mobile_auth_report');
   iform_mobile_auth_log('REQUEST');
-  iform_mobile_auth_log(print_r($request,1));
+  iform_mobile_auth_log(print_r($request, 1));
 
-  //authenticate
-  if (!$existing_user = iform_mobile_auth_authorise_request())
+  // Authenticate.
+  if (!$existing_user = iform_mobile_auth_authorise_request()) {
     return;
+  }
 
-  //verify request
+  // Verify request.
   if (empty($request['table'])) {
     print 'Bad request';
     iform_mobile_auth_log('Missing service warehouse table.');
     return;
   }
 
-  //prepare request for warehouse query
+  // Prepare request for warehouse query.
   $table = $request['table'];
   $columns = $request['columns'];
   unset($request['table']);
@@ -730,7 +696,8 @@ function iform_mobile_auth_services(){
     'table' => $table,
     'columns' => $columns,
     'extraParams' => $auth + $request,
-    'nocache' => true // forces a load from the db rather than local cache
+    // Forces a load from the db rather than local cache.
+    'nocache' => TRUE,
   ));
 
   print json_encode($response);
@@ -740,21 +707,21 @@ function iform_mobile_auth_services(){
 /**
  * Authorise a request to either submit or read records from an app.
  *
- * Uses the posted usersecret, appsecret and email to check that the app is authorised and
- * that the user is valid and activated.
- * @return object Drupal user object, or FALSE if not authorised.
+ * Uses the posted usersecret, appsecret and email to check that the app is 
+ * authorised and that the user is valid and activated.
+ * @return object 
+ *   Drupal user object, or FALSE if not authorised.
  */
 function iform_mobile_auth_authorise_request() {
-  // pull out expected parameters from POST request
+  // Pull out expected parameters from POST request.
   $usersecret = $_POST['usersecret'];
   $provided_appsecret = $_POST['appsecret'];
   $provided_appname = $_POST['appname'];
   $email = $_POST['email'];
 
-  // Step 1
-  // Verify APP shared secret
-  if (!iform_mobile_auth_authorise_app($provided_appname, $provided_appsecret))
-  {
+  // Step 1.
+  // Verify APP shared secret.
+  if (!iform_mobile_auth_authorise_app($provided_appname, $provided_appsecret)) {
     drupal_add_http_header('Status', '400 Bad Request');
     print 'Bad request';
     iform_mobile_auth_log('Missing or incorrect shared app secret');
@@ -762,9 +729,9 @@ function iform_mobile_auth_authorise_request() {
   }
 
   // Step 2.
-  // Locate corresponding user
+  // Locate corresponding user.
   if (isset($GLOBALS['user']) && $GLOBALS['user']->uid > 0) {
-    // User is already authenticated
+    // User is already authenticated.
     $existing_user = $GLOBALS['user'];
     iform_mobile_auth_log('User already authenticated.');
     // Skip to step 5
@@ -773,9 +740,9 @@ function iform_mobile_auth_authorise_request() {
     if (!empty($email)) {
       $existing_user = user_load_by_mail($email);
     }
-  
-    if (empty($email) || $existing_user == FALSE)
-    { // Submit records from unkown users anonymously.
+
+    if (empty($email) || $existing_user == FALSE) {
+      // Submit records from unkown users anonymously.
       if (empty($email)) {
         $email = "app@mobile.net";
         iform_mobile_auth_log('Submitting anonymously as no email supplied');
@@ -783,35 +750,33 @@ function iform_mobile_auth_authorise_request() {
       else {
         iform_mobile_auth_log("Submitting anonymously as no user could be found for $email");
       }
-      
-      // Create a user 
-      $user_details = array("uid" => 0,
+
+      // Create a user .
+      $user_details = array(
+        "uid" => 0,
         "name" => $email,
         "mail" => $email);
       $user_details['field_first_name'][LANGUAGE_NONE][0]['value'] = "Anonymous";
       $user_details['field_last_name'][LANGUAGE_NONE][0]['value'] = "Anonymous";
       $user_details['field_indicia_user_id'][LANGUAGE_NONE][0]['value'] = 1;
-      $existing_user = (object)$user_details;
+      $existing_user = (object) $user_details;
     }
-    else
-    {
-      // wrap user for ease of accessing fields
+    else {
+      // Wrap user for ease of accessing fields.
       $user_wrapped = entity_metadata_wrapper('user', $existing_user);
-      
+
       // Step 3.
-      // Verify USER shared secret...
-      if (empty($usersecret) || 
-          $usersecret != $user_wrapped->field_iform_auth_shared_secret->value())
-      {
+      // Verify USER shared secret.
+      if (empty($usersecret) ||
+          $usersecret != $user_wrapped->field_iform_auth_shared_secret->value()) {
         drupal_add_http_header('Status', '400 Bad Request');
         print 'Bad request';
         iform_mobile_auth_log('User secret incorrect');
         return FALSE;
       }
       // Step 4.
-      // Check user activation status
-      if ($existing_user->status != 1)
-      {
+      // Check user activation status.
+      if ($existing_user->status != 1) {
         iform_mobile_auth_log('User not activated');
         drupal_add_http_header('Status', '407 Proxy Authentication Required');
         print 'User not activated';
@@ -820,89 +785,92 @@ function iform_mobile_auth_authorise_request() {
       iform_mobile_auth_log('User authenticated');
     }
   }
-  // assign this user to gobal user var so that it can be added to the indicia submission
+  // Assign this user to gobal user var so that it can be added to the indicia
+  // submission.
   iform_mobile_auth_log(print_r($existing_user, 1));
   $GLOBALS['user'] = $existing_user;
   return $existing_user;
 }
 
-
-##########################
-#### HELPER FUNCTIONS ####
-##########################
-
 /**
  * Checks if the user is allowed to see a saved app account.
- * @param null $app
+ * 
+ * @param array $app
+ *   An array containing details of an app account.
+ * 
  * @return bool
+ *   TRUE if user has the 'admin moobile auth permission' or they created the 
+ *   app.
  */
-function user_has_permission($app = NULL){
+function user_has_permission($app = NULL) {
   global $user;
   return user_access('admin mobile auth') || (!is_null($app) && $app['created_by'] === $user->uid);
 }
 
 /**
- * Implements hook_load() to load the apps from the database.
- * @param null $id
- * @return array
+ * Implements hook_load().
  */
 function iform_mobile_auth_app_load($id = NULL) {
-  if ($id){
-    //get specific app account
+  if ($id) {
+    // Get specific app account.
     $results = db_query("SELECT * FROM {iform_mobile_auth}
       WHERE id = :id ORDER BY title", array(':id' => $id));
-  } else{
-    //all accounts
+  }
+  else {
+    // All accounts.
     $results = db_query("SELECT * FROM {iform_mobile_auth} ORDER BY title");
   }
 
-  //transform an array of apps
+  // Transform an array of apps.
   $apps = array();
-  foreach ($results as $app){
+  foreach ($results as $app) {
     $apps[] = (array) $app;
   }
 
   return $apps;
 }
 
-
 /**
- * The core function that checks if the sent mobile application password and name
- * matches any in the database.
+ * Checks if the mobile application password and name match any in the database.
  *
  * If no $name was provided then the account is assumed to be anonymous.
  *
  * This function iterates through the list of app accounts from database table
- * with the matching name. This means it is allowed for one appname to have more than one
- * appsecret, and if any of the secrets match the provided secret than the authorisation is given.
+ * with the matching name. This means it is allowed for one appname to have more
+ * than one appsecret, and if any of the secrets match the provided secret than
+ * the authorisation is given.
  */
-function iform_mobile_auth_authorise_app($name, $secret)
-{
-  if (empty($secret)){
+function iform_mobile_auth_authorise_app($name, $secret) {
+  if (empty($secret)) {
     return FALSE;
   }
 
-  //case for anonymous user
+  // Case for anonymous user.
   $name = empty($name) ? 'anonymous' : $name;
 
-  $result = db_query("SELECT * FROM {iform_mobile_auth} WHERE name = :name",
-    array(':name' => $name));
-  foreach($result as $app) {
+  $result = db_query(
+          "SELECT * FROM {iform_mobile_auth} WHERE name = :name",
+          array(':name' => $name));
+  foreach ($result as $app) {
     $current_secret = $app->secret;
-    if (verify_hash($secret, $current_secret)){
+    if (verify_hash($secret, $current_secret)) {
       return TRUE;
-      break;
     }
   }
 
   return FALSE;
 }
 
-/*
+/**
  * Generates a hashed secret.
+ * 
  * Uses PHPASS library for pre PHP 5.3
- * @param $secret
+ * 
+ * @param string $secret
+ *   The value to hash.
+ * 
  * @return string
+ *   The hashed value.
  */
 function generate_hash($secret) {
   $t_hasher = new PasswordHash(8, FALSE);
@@ -911,8 +879,9 @@ function generate_hash($secret) {
   return $hashed_secret;
 }
 
-/*
+/**
  * Verifies a hashed password.
+ * 
  * Uses PHPASS library for pre PHP 5.3
  */
 function verify_hash($secret, $hashed_secret) {
@@ -924,13 +893,13 @@ function verify_hash($secret, $hashed_secret) {
 
 /**
  * A function to escape user input.
+ * 
  * Currently simply a wrapper around drupal's check_plain function.
  */
-function iform_mobile_auth_escape($value)
-{
+function iform_mobile_auth_escape($value) {
   if (is_array($value)) {
     $escaped_array = array();
-    foreach($value as $key => $nested_value){
+    foreach ($value as $key => $nested_value) {
       $escaped_array[$key] = iform_mobile_auth_escape($nested_value);
     }
     return $escaped_array;
@@ -943,41 +912,54 @@ function iform_mobile_auth_escape($value)
 
 /**
  * A simple utility method to generate a random string of specific length.
+ * 
  * @param int $length
+ *   The length of string required.
+ * 
  * @return string
+ *   A random string.
  */
-function iform_mobile_auth_generate_random_string($length = 10)
-{
+function iform_mobile_auth_generate_random_string($length = 10) {
   return substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, $length);
 }
 
 
 /**
- * This calls the index.php/services/user_identifier/get_user_id service to return an indicia id which
- * can be associated with the user account.
- * @param $email
- * @param $firstname
- * @param $secondname
- * @param $cms_id
+ * Obtains an indicia user id from the warehouse.
+ * 
+ * This calls the index.php/services/user_identifier/get_user_id service to 
+ * return an indicia id which can be associated with the user account.
+ * 
+ * @param string $email 
+ *   The user's email.
+ * @param string $firstname 
+ *   The user's first name.
+ * @param string $secondname 
+ *   The user's surname.
+ * @param int $cms_id
+ *   The Drupal user id. Not needed when creating new users.
+ * 
  * @return int
+ *   The indicia user id if successful else -1 or and error message.
  */
-function iform_mobile_auth_get_user_id($email, $firstname, $secondname, $cms_id = NULL)
-{
-  // get connection/indicia website details
+function iform_mobile_auth_get_user_id($email, $firstname, $secondname, $cms_id = NULL) {
+  // Get connection/indicia website details.
   $connection = iform_get_connection_details(NULL);
 
   $postargs = array();
   $postargs['website_id'] = $connection['website_id'];
 
-  // obtain nonce
-  $curl_check = data_entry_helper::http_post(helper_config::$base_url.'index.php/services/security/get_nonce', $postargs);
+  // Obtain nonce.
+  $curl_check = data_entry_helper::http_post(
+          helper_config::$base_url . 'index.php/services/security/get_nonce',
+          $postargs);
 
   if ($curl_check['result']) {
-    $nonce =  $curl_check['output'];
+    $nonce = $curl_check['output'];
 
     $postargs = array();
-    $postargs['identifiers'] = '[{"type":"email","identifier":"'.$email.'"}]';
-    $postargs['auth_token'] = sha1($nonce.":".$connection['password']);
+    $postargs['identifiers'] = '[{"type":"email","identifier":"' . $email . '"}]';
+    $postargs['auth_token'] = sha1($nonce . ":" . $connection['password']);
     $postargs['surname'] = $secondname;
     $postargs['first_name'] = $firstname;
     if (isset($cms_id)) {
@@ -986,25 +968,25 @@ function iform_mobile_auth_get_user_id($email, $firstname, $secondname, $cms_id 
     $postargs['force'] = 'split';
     $postargs['nonce'] = $nonce;
 
-    iform_mobile_auth_log(print_r($postargs,1));
+    iform_mobile_auth_log(print_r($postargs, 1));
 
-    // request the user id
-    $get_id_results = data_entry_helper::http_post(helper_config::$base_url.'index.php/services/user_identifier/get_user_id', $postargs, false);
-    iform_mobile_auth_log(print_r($get_id_results,1));
+    // Request the user id.
+    $get_id_results = data_entry_helper::http_post(
+            helper_config::$base_url . 'index.php/services/user_identifier/get_user_id',
+            $postargs,
+            FALSE);
+    iform_mobile_auth_log(print_r($get_id_results, 1));
 
     $result = json_decode($get_id_results['output']);
-    if (!isset($result->error))
-    {
+    if (!isset($result->error)) {
       return intval($result->userId);
     }
-    else
-    {
-      iform_mobile_auth_log('Error in iform_mobile_auth_get_user_id:'.$result->error);
+    else {
+      iform_mobile_auth_log('Error in iform_mobile_auth_get_user_id:' . $result->error);
       return $result->error;
     }
   }
-  else
-  {
+  else {
     iform_mobile_auth_log('iform_mobile_auth_get_user_id:Unable to retreive nonce');
   }
 
@@ -1013,24 +995,30 @@ function iform_mobile_auth_get_user_id($email, $firstname, $secondname, $cms_id 
 
 
 /**
- * Returns TRUE if the supplied password is acceptable.
- * Simple at the moment but could contain additional checks (alpha-numerics, special chars etc)
- * @param $pass
+ * Test if the supplied password is acceptable.
+ * 
+ * Simple at the moment but could contain additional checks (alpha-numerics, 
+ * special chars etc)
+ * 
+ * @param string $pass 
+ *   The proposed password.
+ * 
  * @return bool
+ *   TRUE is password is acceptable, else FALSE
  */
-function iform_mobile_auth_validate_password($pass)
-{
+function iform_mobile_auth_validate_password($pass) {
   return strlen($pass) >= 0;
 }
 
 
 /**
- * Returns TRUE if the module is in debug mode
+ * Tests to see if the app for which a POST has been received is in debug mode.
+ * 
  * @return bool
+ *   TRUE if the app is in debug mode.
  */
-function iform_mobile_auth_debug_mode()
-{
-  if (empty($_POST['appname'])){
+function iform_mobile_auth_debug_mode() {
+  if (empty($_POST['appname'])) {
     return FALSE;
   }
 
@@ -1039,64 +1027,60 @@ function iform_mobile_auth_debug_mode()
   $result = db_query("SELECT * FROM {iform_mobile_auth} WHERE name = :name",
     array(':name' => $name));
 
-  foreach($result as $app) {
-    if ($app->debug == 1){
+  foreach ($result as $app) {
+    if ($app->debug == 1) {
       return TRUE;
-      break;
     }
   }
 
   return FALSE;
 }
 
-
 /**
  * Logs app send data.
+ * 
  * todo: add user authentication option, so that messages have user id.
- *
  */
-function iform_mobile_auth_log_submission(){
+function iform_mobile_auth_log_submission() {
   $appname = $_POST['appname'];
   $appsecret = $_POST['appsecret'];
 
-  if(iform_mobile_auth_authorise_app($appname, $appsecret)){
+  if (iform_mobile_auth_authorise_app($appname, $appsecret)) {
     $message = $_POST['message'];
     $url = $_POST['url'];
 
-    if (empty($message)){
+    if (empty($message)) {
       drupal_add_http_header('Status', '400 Bad Request');
       print 'Bad request';
     }
 
     iform_mobile_auth_log($message, NULL, WATCHDOG_ALERT, $url);
-  } else {
+  }
+  else {
     drupal_add_http_header('Status', '400 Bad Request');
     print 'Bad request';
   }
 }
 
 /**
- * @param $message
+ * Logs messages if in debug mode.
+ * 
+ * Messages go to the PHP error log and the Drupal error log.
  */
-function iform_mobile_auth_log($message, $variables = array(), $severity = WATCHDOG_NOTICE, $link = NULL)
-{
-  // obtain debug mode indicator
+function iform_mobile_auth_log($message, $variables = array(), $severity = WATCHDOG_NOTICE, $link = NULL) {
+  // Obtain debug mode indicator.
   $debug = iform_mobile_auth_debug_mode();
-  if ($debug)
-  {
+  if ($debug) {
     error_log($message);
     watchdog("iform_mobile_auth", $message, $variables, $severity, $link);
   }
 }
 
 /**
- * Implement hook_user_view.
- * Hide's system fields when not an admin.
- * @param $account
- * @param $view_mode
- * @param $langcode
+ * Implements hook_user_view(). 
  */
 function iform_mobile_auth_user_view($account, $view_mode, $langcode) {
+  // Hide's system fields when not an admin.
   if (!user_access('admin mobile auth')) {
     unset($account->content['field_iform_auth_shared_secret']);
     unset($account->content['field_confirmation_code']);
@@ -1104,16 +1088,14 @@ function iform_mobile_auth_user_view($account, $view_mode, $langcode) {
 }
 
 /**
- * Implement hook_form_alter.
- * Hide's system fields from forms when not an admin.
- * @param $form
- * @param $form_state
- * @param $form_id
+ * Implements hook_form_alter().
  */
 function iform_mobile_auth_form_alter(&$form, &$form_state, $form_id) {
+  // Hide's system fields from forms when not an admin.
   if (($form_id === 'user_profile_form' || $form_id === 'user_register')) {
-    if (!user_access('admin mobile auth'))
+    if (!user_access('admin mobile auth')) {
       unset($form['field_iform_auth_shared_secret']);
+    }
     unset($form['field_confirmation_code']);
   }
 }

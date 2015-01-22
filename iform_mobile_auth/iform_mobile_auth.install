@@ -4,209 +4,225 @@
  * @file
  * The install and update code for the iform_mobile_auth module.
  */
- 
-require_once('iform_mobile_auth.module');
+
+require_once 'iform_mobile_auth.module';
 
 /**
- * Implements hook_schema()
+ * Implements hook_schema().
  */
- function iform_mobile_auth_schema(){
-   $schema['iform_mobile_auth'] = array(
-      'description' => 'iForm Mobile Authentication Module table',
-      'fields' => array(
-        'id'=> array(
-          'description' => 'The primary identifier for an app.',
-          'type' => 'serial',
-          'unsigned' => TRUE,
-          'not null' => TRUE,
-          'no export' => TRUE,
-        ),
-        'enabled'=> array(
-          'description' => 'App enabled.',
-          'type' => 'int',
-          'size' => 'tiny',
-          'not null' => TRUE,
-          'default' => 0,
-        ),
-        'debug'=> array(
-          'description' => 'Debugging enabled.',
-          'type' => 'int',
-          'size' => 'tiny',
-          'not null' => TRUE,
-          'default' => 0,
-        ),
-        'title'=> array(
-          'description' => 'App title.',
-          'type' => 'varchar',
-          'length' => 255,
-          'not null' => TRUE,
-        ),
-        'description'=> array(
-          'description' => 'App description.',
-          'type' => 'text',
-          'size' => 'normal',
-          'not null' => TRUE,
-        ),
-          'name' => array(
-          'description' => 'App name.',
-          'type' => 'varchar',
-          'length' => 32,
-          'not null' => TRUE,
-        ),
-        'secret'=> array(
-          'description' => 'App secret.',
-          'type' => 'varchar',
-          'length' => 60,
-          'not null' => TRUE,
-        ),
-        'registration_subject'=> array(
-          'description' => 'App User registration email subject heading.',
-          'type' => 'varchar',
-          'length' => 32,
-          'not null' => TRUE,
-        ),
-        'registration_body'=> array(
-          'description' => 'App registration email body.',
-          'type' => 'text',
-          'size' => 'normal',
-          'not null' => TRUE,
-        ),
-        'registration_redirect'=> array(
-          'description' => 'App url to redirect users to after clicking on the confirmation link.',
-          'type' => 'varchar',
-          'length' => 32,
-          'not null' => TRUE,
-        ),
-        'redirect_unsuccessful'=> array(
-          'description' => 'App url to redirect anonymous users to if attempting to reactive an already expired or invalid link.',
-          'type' => 'varchar',
-          'length' => 32,
-          'not null' => TRUE,
-        ),
-        'created_by' => array(
-          'description' => 'Used id that created the app',
-          'type' => 'int',
-          'unsigned' => TRUE,
-          'not null' => TRUE,
-          'default' => 0
-        ),
-        'created' => array(
-          'description' => 'The Unix timestamp when the app was created.',
-          'type' => 'int',
-          'not null' => TRUE,
-          'unsigned' => TRUE,
-          'default' => 0
-        ),
-        'changed' => array(
-          'description' => 'The Unix timestamp when the app was most recently saved.',
-          'type' => 'int',
-          'not null' => TRUE,
-          'unsigned' => TRUE,
-          'default' => 0
-        ),
-       ),
-      'unique keys' => array(
-        'id' => array('id')
-       ),
-      'primary key' => array('id'),
-   );
-   
-  return $schema; 
- } 
+function iform_mobile_auth_schema() {
+  $schema['iform_mobile_auth'] = array(
+    'description' => 'iForm Mobile Authentication Module table',
+    'fields' => array(
+      'id' => array(
+        'description' => 'The primary identifier for an app.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'no export' => TRUE,
+      ),
+      'enabled' => array(
+        'description' => 'App enabled.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'debug' => array(
+        'description' => 'Debugging enabled.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'title' => array(
+        'description' => 'App title.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'description' => array(
+        'description' => 'App description.',
+        'type' => 'text',
+        'size' => 'normal',
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'App name.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'secret' => array(
+        'description' => 'App secret.',
+        'type' => 'varchar',
+        'length' => 60,
+        'not null' => TRUE,
+      ),
+      'registration_subject' => array(
+        'description' => 'App User registration email subject heading.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'registration_body' => array(
+        'description' => 'App registration email body.',
+        'type' => 'text',
+        'size' => 'normal',
+        'not null' => TRUE,
+      ),
+      'registration_redirect' => array(
+        'description' => 'App url to redirect users to after clicking on the confirmation link.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'redirect_unsuccessful' => array(
+        'description' => 'App url to redirect anonymous users to if attempting to reactive an already expired or invalid link.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'created_by' => array(
+        'description' => 'Used id that created the app',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the app was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+        'default' => 0,
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp when the app was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'unique keys' => array(
+      'id' => array('id'),
+    ),
+    'primary key' => array('id'),
+  );
+
+  return $schema;
+}
 
 /**
  * Implements hook_install().
- * Installs module's table and extends users table schema with custom fields.
+ * 
+ * Adds custom fields used by module.
  */
 function iform_mobile_auth_install() {
-   // drupal_install_schema('iform_mobile_auth');
+  $fields = array(
+    'field_indicia_user_id' => (object) array(
+      'type' => 'number_integer',
+      'title' => 'User ID for this account on the warehouse',
+      'name' => 'field_indicia_user_id',
+    ),
+    'field_first_name' => (object) array(
+      'type' => 'text',
+      'title' => 'User\'s first name',
+      'name' => 'field_first_name',
+    ),
+    'field_last_name' => (object) array(
+      'type' => 'text',
+      'title' => 'User\'s last name',
+      'name' => 'field_last_name',
+      'required' => TRUE,
+    ),
+    'field_iform_auth_shared_secret' => (object) array(
+      'type' => 'text',
+      'title' => 'User shared secret',
+      'name' => 'field_iform_auth_shared_secret',
+    ),
+    'field_confirmation_code' => (object) array(
+      'type' => 'text',
+      'title' => 'One-time login code for mobile registered user',
+      'name' => 'field_confirmation_code',
+    ),
+  );
 
-  foreach ( iform_mobile_auth_user_fields() as $fielddef )
-  {
+  foreach ($fields as $fielddef) {
     if (!field_info_field($fielddef->name)) {
-      watchdog('ima', 'Adding field: '.$fielddef->name);
+      watchdog('ima', 'Adding field: ' . $fielddef->name);
       $field = array(
         'field_name' => $fielddef->name,
-        'type' => $fielddef->type
+        'type' => $fielddef->type,
       );
-      if (isset($fielddef->required))
-        $field['settings']=array('required'=>TRUE);
+      if (isset($fielddef->required)) {
+        $field['settings'] = array('required' => TRUE);
+      }
       field_create_field($field);
-    } else
-      watchdog('ima', 'Field already exists: '.$fielddef->name);
+    }
+    else {
+      watchdog('ima', 'Field already exists: ' . $fielddef->name);
+    }
     if (!field_info_instance('user', $fielddef->name, 'user')) {
-      watchdog('ima', 'Adding instance: '.$fielddef->name);
+      watchdog('ima', 'Adding instance: ' . $fielddef->name);
       $instance = array(
         'field_name' => $fielddef->name,
         'entity_type' => 'user',
         'label' => $fielddef->title,
         'bundle' => 'user',
-        'required' => isset($fielddef->required) && $fielddef->required
+        'required' => isset($fielddef->required) && $fielddef->required,
       );
       field_create_instance($instance);
-    } else
-      watchdog('ima', 'Instance already exists: '.$fielddef->name);
+    }
+    else {
+      watchdog('ima', 'Instance already exists: ' . $fielddef->name);
+    }
   }
 }
 
 /**
  * Implements hook_uninstall().
- * Remove custom fields from users table
  */
 function iform_mobile_auth_uninstall() {
-    
-    drupal_uninstall_schema('iform_mobile_auth');
-    /*
-    //Don't remove the fields as they are being used by other parts of the website
-    
-    foreach ( iform_mobile_auth_profile_fields() as $field )
-    {
-        db_query("DELETE FROM {profile_values} WHERE fid IN (SELECT fid FROM {profile_fields} WHERE name='%s' AND category='%s')",$field->name);
-        db_query("DELETE FROM {profile_fields} WHERE name='%s'", $field->name);
-        $msg = 'Profile field '.$field->name.' was deleted.';
-        watchdog('info', $msg);
-        drupal_set_message($msg);
-    }
-    */
+  drupal_uninstall_schema('iform_mobile_auth');
+  // Don't remove the fields as they are being used by other parts of the
+  // website.
 }
 
 /**
- * Implements hook_requirements($phase)
+ * Implements hook_requirements().
  */
-function iform_mobile_auth_requirements($phase)
-{
+function iform_mobile_auth_requirements($phase) {
   $requirements = array();
   $t = get_t();
 
   if ($phase == 'runtime') {
     $debug = variable_get('iform_mobile_auth_debug', 0);
-    $shared_secret = variable_get('iform_mobile_auth_shared_secret',NULL);
-    
+    $shared_secret = variable_get('iform_mobile_auth_shared_secret', NULL);
+
     $requirements['iform_mobile_auth'] = array(
-      'title' =>  $t('IForm Authentication Secret'),
+      'title' => $t('IForm Authentication Secret'),
     );
-    
-    if ($shared_secret == NULL)
-    {
+
+    if ($shared_secret == NULL) {
       $requirements['iform_mobile_auth']['value'] = l($t('Not set'), 'admin/settings/iform/mobile');
       $requirements['iform_mobile_auth']['severity'] = REQUIREMENT_ERROR;
     }
-    else
-    {
-        $requirements['iform_mobile_auth']['value'] =  l($t('Configured'), 'admin/settings/iform/mobile');
-        $requirements['iform_mobile_auth']['severity'] = REQUIREMENT_OK;
+    else {
+      $requirements['iform_mobile_auth']['value'] = l($t('Configured'), 'admin/settings/iform/mobile');
+      $requirements['iform_mobile_auth']['severity'] = REQUIREMENT_OK;
     }
-    
-    if ($debug)
-    {
-        $requirements['iform_mobile_auth_debug'] = array(
-            'title' => 'IForm Mobile Auth debug mode',
-            'value' =>  $t('Enabled'),
-            'severity' => REQUIREMENT_WARNING,
-            'description' => $t('The IForm Mobile Auth debug mode is currently enabled. Remember to <a href="@url">disable this on your production site</a>', array('@url' => '/admin/settings/iform/mobile')), 
-        );
+
+    if ($debug) {
+      $requirements['iform_mobile_auth_debug'] = array(
+        'title' => 'IForm Mobile Auth debug mode',
+        'value' => $t('Enabled'),
+        'severity' => REQUIREMENT_WARNING,
+        'description' => $t('The IForm Mobile Auth debug mode is currently enabled. Remember to <a href="@url">disable this on your production site</a>', array('@url' => '/admin/settings/iform/mobile')),
+      );
     }
   }
-  
+
   return $requirements;
 }

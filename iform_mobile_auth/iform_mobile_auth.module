@@ -616,6 +616,9 @@ function iform_mobile_auth_report() {
   if (!$existing_user = iform_mobile_auth_authorise_request()) {
     return;
   }
+  // Wrap user for ease of accessing fields.
+  $user_wrapped = entity_metadata_wrapper('user', $existing_user);
+  
   $connection = iform_get_connection_details(NULL);
   $auth = data_entry_helper::get_read_auth($connection['website_id'], $connection['password']);
   $url = helper_config::$base_url . 'index.php/services/report/requestReport';
@@ -629,7 +632,7 @@ function iform_mobile_auth_report() {
     'reportSource' => 'local',
   );
   if ($caching === 'false' || $request['caching'] === 'perUser') {
-    $request['user_id'] = $existing_user->profile_indicia_user_id;
+    $request['user_id'] = $user_wrapped->field_indicia_user_id->value();
   }
   $request = array_merge($defaults, $auth, $request);
   $cache_loaded = FALSE;

@@ -538,11 +538,16 @@ function iform_mobile_auth_client_submission() {
       }
     }
 
+    // We allow a sample with list of occurrences, sample with single occurrence or just a sample 
+    // to be submitted.
     if ($is_occurrence_list) {
       $submission = data_entry_helper::build_sample_occurrences_list_submission($params);
     }
-    else {
+    elseif (!empty($params['occurrence:taxa_taxon_list_id'])) {
       $submission = data_entry_helper::build_sample_occurrence_submission($params);
+    }
+    else {
+      $submission = data_entry_helper::build_submission($params, array('model' => 'sample'));
     }
 
     iform_mobile_auth_log('Sending the following fields:');

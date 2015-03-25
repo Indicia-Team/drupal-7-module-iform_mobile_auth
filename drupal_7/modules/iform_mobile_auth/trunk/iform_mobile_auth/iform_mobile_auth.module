@@ -160,7 +160,7 @@ function iform_mobile_auth_user_register() {
   $email = $_POST['email'];
   $password = $_POST['password'];
   $provided_appsecret = $_POST['appsecret'];
-  $provided_appname = $_POST['appname'];
+  $provided_appname = empty($_POST['appname']) ? '' : $_POST['appname'];
 
   // Step 1.
   // Check minimum valid parameters.
@@ -724,7 +724,7 @@ function iform_mobile_auth_authorise_request() {
   // Pull out expected parameters from POST request.
   $usersecret = $_POST['usersecret'];
   $provided_appsecret = $_POST['appsecret'];
-  $provided_appname = $_POST['appname'];
+  $provided_appname = empty($_POST['appname']) ? '' : $_POST['appname'];
   $email = $_POST['email'];
 
   // Step 1.
@@ -1050,7 +1050,7 @@ function iform_mobile_auth_debug_mode() {
  * todo: add user authentication option, so that messages have user id.
  */
 function iform_mobile_auth_log_submission() {
-  $appname = $_POST['appname'];
+  $appname = empty($_POST['appname']) ? '' : $_POST['appname'];
   $appsecret = $_POST['appsecret'];
 
   if (iform_mobile_auth_authorise_app($appname, $appsecret)) {

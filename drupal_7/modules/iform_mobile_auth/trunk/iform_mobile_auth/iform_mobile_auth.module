@@ -384,7 +384,7 @@ function iform_mobile_auth_client_submission() {
   // Wrap user for easier access to fields.
   $user_wrapped = entity_metadata_wrapper('user', $existing_user);
 
-  $safe_website_id = intval($_POST['website_id']);
+  $safe_website_id = intval(isset($_POST['website_id']) ? $_POST['website_id'] : 0);
   if ($safe_website_id == 0 ||
           $safe_website_id != variable_get('indicia_website_id', '')) {
     drupal_add_http_header('Status', '400 Bad Request');
@@ -436,22 +436,27 @@ function iform_mobile_auth_client_submission() {
           FALSE);
 
   if (isset($curl_check['result'])) {
-
-    if (isset($_FILES['photo1'])) {
-      // Rename attached file to be picked up correctly.
-      $_FILES['occurrence:image:1'] = $_FILES['photo1'];
-
-      // Mobile generated files can have file name in format
-      // resize.jpg?1333102276814 which will fail the warehouse submission
-      // process.
-      if (strstr($_FILES['occurrence:image:1']['type'], 'jpg') !== FALSE ||
-        strstr($_FILES['occurrence:image:1']['type'], 'jpeg') !== FALSE) {
-        $_FILES['occurrence:image:1']['name'] = uniqid() . '.jpg';
+    // check the files for photos
+    $processedFiles = array();
+    foreach ($_FILES as $name => $info) {
+      // if name is sample_photo1 or photo1 etc then process it.
+      if (preg_match('/^(?P<sample>sample_)?photo(?P<id>[0-9])$/', $name, $matches)) {
+        $baseModel = empty($matches['sample']) ? 'occurrence' : 'sample';
+        $name = "$baseModel:image:$matches[id]";
+        // Mobile generated files can have file name in format
+        // resize.jpg?1333102276814 which will fail the warehouse submission
+        // process.
+        if (strstr($info['type'], 'jpg') !== FALSE || strstr($info['type'], 'jpeg') !== FALSE) {
+          $info['name'] = uniqid() . '.jpg';
+        }
+        if (strstr($info['type'], 'png') !== FALSE) {
+          $info['name'] = uniqid() . '.png';
+        }
+        $processedFiles[$name] = $info;
       }
-      if (strstr($_FILES['occurrence:image:1']['type'], 'png') !== FALSE) {
-        $_FILES['occurrence:image:1']['name'] = uniqid() . '.png';
-      }
-      unset($_FILES['photo1']);
+    }
+    if (!empty($processedFiles)) {
+      $_FILES = $processedFiles;
       iform_mobile_auth_log(print_r($_FILES, 1));
     }
 
@@ -722,10 +727,10 @@ function iform_mobile_auth_services() {
  */
 function iform_mobile_auth_authorise_request() {
   // Pull out expected parameters from POST request.
-  $usersecret = $_POST['usersecret'];
-  $provided_appsecret = $_POST['appsecret'];
-  $provided_appname = empty($_POST['appname']) ? '' : $_POST['appname'];
-  $email = $_POST['email'];
+  $usersecret = isset($_POST['usersecret']) ? $_POST['usersecret'] : '';
+  $provided_appsecret = isset($_POST['appsecret']) ? $_POST['appsecret'] : '';
+  $provided_appname = isset($_POST['appname']) ? $_POST['appname'] : '';
+  $email = isset($_POST['email']) ? $_POST['email'] : '';
 
   // Step 1.
   // Verify APP shared secret.

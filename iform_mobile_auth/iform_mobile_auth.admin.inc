@@ -156,7 +156,7 @@ function iform_mobile_auth_app($form, &$form_state, $apps = NULL) {
   );
 
   $form['cancel'] = array(
-    '#markup' => l(t('Cancel'), CONFIG_PATH . '/mobile/dashboard'),
+    '#markup' => l(t('Cancel'), IFORM_MOBILE_AUTH_CONFIG_PATH . '/mobile/dashboard'),
   );
 
   // Check if user has access to create new app.

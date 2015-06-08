@@ -454,6 +454,17 @@ function iform_mobile_auth_client_submission() {
         }
         $processedFiles[$name] = $info;
       }
+      // Handle files sent along with a species checklist style submission. Files should be POSTed in
+      // a field called sc:<gridrow>::photo[1-9] and will then get moved to the interim image folder and
+      // linked to the form using a field called sc:<gridrow>::occurremce_media:path:[1-9]
+      elseif (preg_match('/^sc:(?P<gridrow>.+)::photo(?P<id>[0-9])$/', $name, $matches)) {
+        $interim_image_folder = isset(data_entry_helper::$interim_image_folder) ? data_entry_helper::$interim_image_folder : 'upload/';
+        $uploadPath = data_entry_helper::relative_client_helper_path().$interim_image_folder;
+        $interimFileName = uniqid().'.jpg';
+        if (move_uploaded_file($info['tmp_name'], $uploadPath.$interimFileName)) {
+          $_POST["sc: $matches[gridrow]::occurrence_medium:path:$matches[id]"] = $interimFileName;
+        }
+      }
     }
     if (!empty($processedFiles)) {
       $_FILES = $processedFiles;

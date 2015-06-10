@@ -462,7 +462,7 @@ function iform_mobile_auth_client_submission() {
         $uploadPath = data_entry_helper::relative_client_helper_path().$interim_image_folder;
         $interimFileName = uniqid().'.jpg';
         if (move_uploaded_file($info['tmp_name'], $uploadPath.$interimFileName)) {
-          $_POST["sc: $matches[gridrow]::occurrence_medium:path:$matches[id]"] = $interimFileName;
+          $_POST["sc:$matches[gridrow]::occurrence_medium:path:$matches[id]"] = $interimFileName;
         }
       }
     }

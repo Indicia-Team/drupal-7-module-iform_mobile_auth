@@ -354,6 +354,9 @@ function iform_mobile_auth_user_register() {
  * token
  */
 function iform_mobile_auth_user_login() {
+  // skip if not called from an app
+  if (empty($_POST['appsecret']))  
+    return;
 
   drupal_add_http_header('Content-type', 'text/plain; charset=UTF-8');
 

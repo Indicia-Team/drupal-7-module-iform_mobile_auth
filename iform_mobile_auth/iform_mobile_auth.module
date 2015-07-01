@@ -1082,7 +1082,7 @@ function iform_mobile_auth_authorise_request() {
       // Check user activation status.
       if ($existing_user->status != 1) {
         iform_mobile_auth_log('User not activated');
-        drupal_add_http_header('Status', '407 Proxy Authentication Required');
+        drupal_add_http_header('Status', '401 Unauthorized');
         print 'User not activated';
         return FALSE;
       }

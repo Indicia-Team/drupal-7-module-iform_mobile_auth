@@ -102,7 +102,6 @@ function iform_mobile_auth_menu() {
     'page callback' => 'iform_mobile_auth_dashboard',
     'access arguments' => array('user mobile auth'),
     'file' => 'iform_mobile_auth.admin.inc',
-    'type' => MENU_LOCAL_TASK,
   );
   // Add.
   $items[IFORM_MOBILE_AUTH_CONFIG_PATH . '/add'] = array(

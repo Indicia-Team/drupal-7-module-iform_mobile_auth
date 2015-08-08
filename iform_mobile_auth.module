@@ -843,7 +843,7 @@ function iform_mobile_auth_client_submission() {
          'key'=>'occurrence_id',
          'fieldprefix'=>'occAttr',
          'extraParams'=>$auth,
-         'survey_id'=>$save_survey_id
+         'survey_id'=>$safe_survey_id
       );
       $occAttrs = data_entry_helper::getAttributes($attrArgs, false);
       $abundanceAttrs = array();

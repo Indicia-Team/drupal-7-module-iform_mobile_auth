@@ -726,10 +726,10 @@ function iform_mobile_auth_client_submission() {
         // resize.jpg?1333102276814 which will fail the warehouse submission
         // process.
         if (strstr($info['type'], 'jpg') !== FALSE || strstr($info['type'], 'jpeg') !== FALSE) {
-          $info['name'] = uniqid() . '.jpg';
+          $info['name'] = sha1(mt_rand(0, 1000000)) . '.jpg';
         }
         if (strstr($info['type'], 'png') !== FALSE) {
-          $info['name'] = uniqid() . '.png';
+          $info['name'] = sha1(mt_rand(0, 1000000)) . '.png';
         }
         $processedFiles[$name] = $info;
       }
@@ -739,7 +739,7 @@ function iform_mobile_auth_client_submission() {
       elseif (preg_match('/^sc:(?P<gridrow>.+)::photo(?P<id>[0-9])$/', $name, $matches)) {
         $interim_image_folder = isset(data_entry_helper::$interim_image_folder) ? data_entry_helper::$interim_image_folder : 'upload/';
         $uploadPath = data_entry_helper::relative_client_helper_path().$interim_image_folder;
-        $interimFileName = uniqid().'.jpg';
+        $interimFileName = sha1(mt_rand(0, 1000000)) .'.jpg';
         if (move_uploaded_file($info['tmp_name'], $uploadPath.$interimFileName)) {
           $_POST["sc:$matches[gridrow]::occurrence_medium:path:$matches[id]"] = $interimFileName;
         }

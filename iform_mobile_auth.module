@@ -6,6 +6,7 @@
  */
 
 require 'phpass/PasswordHash.php';
+require 'api/main.php';
 
 // Module configuration's URL path.
 define('IFORM_MOBILE_AUTH_CONFIG_PATH', 'admin/config/iform/mobile');
@@ -39,6 +40,8 @@ if (module_exists('iform')) {
  */
 function iform_mobile_auth_menu() {
   $items = array();
+
+  $items = array_merge($items, api_menu());
 
   // Mobile registration-based actions.
   $items['user/mobile/register'] = array(

@@ -37,7 +37,10 @@ function iform_mobile_auth_samples_post() {
   if (isset($response['error'])) {
     $errors = [];
     foreach ($response['errors'] as $key => $error) {
-      $errors[$key] = [ title => $error ];
+      array_push($errors, [
+        title => $key,
+        description => $error
+      ]);
     }
     error_print(400, 'Bad Request', null, $errors);
   } else {
@@ -177,7 +180,11 @@ function has_duplicates($submission) {
   if (count($duplicates) > 0) {
     $errors = [];
     foreach ($duplicates as $duplicate) {
-      array_push($errors, [ title => 'Record already exists.']);
+      array_push($errors, [
+        id => $duplicate['id'],
+        external_key => $duplicate['external_key'],
+        title => 'Record already exists.'
+      ]);
     }
     error_print(409, 'Conflict', null, $errors);
     return true;

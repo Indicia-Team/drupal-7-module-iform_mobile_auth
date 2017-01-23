@@ -183,7 +183,8 @@ function has_duplicates($submission) {
       array_push($errors, [
         id => $duplicate['id'],
         external_key => $duplicate['external_key'],
-        title => 'Record already exists.'
+        sample_id => $duplicate['sample_id'],
+        title => 'Occurrence already exists.'
       ]);
     }
     error_print(409, 'Conflict', null, $errors);

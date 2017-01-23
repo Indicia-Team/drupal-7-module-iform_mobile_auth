@@ -20,8 +20,8 @@ function api_menu() {
 
   // Mobile based record submission.
   $items["$api_path/samples"] = array(
-    'title'             => 'Samples',
-    'page callback'     => 'iform_mobile_auth_samples',
+    'title'             => 'Samples POST',
+    'page callback'     => 'iform_mobile_auth_samples_post',
     'access callback'   => TRUE,
   );
 

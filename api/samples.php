@@ -1,7 +1,8 @@
 <?php
 
-
-
+/**
+ * Samples POST request handler.
+ */
 function iform_mobile_auth_samples_post() {
   iform_mobile_auth_log('Samples POST');
   iform_mobile_auth_log(print_r($_POST, 1));
@@ -58,6 +59,9 @@ function iform_mobile_auth_samples_post() {
   }
 }
 
+/**
+ * Processes the files attached to request.
+ */
 function process_files() {
   $processedFiles = array();
   foreach ($_FILES as $name => $info) {
@@ -97,6 +101,15 @@ function process_files() {
   }
 }
 
+/**
+ * Processes all the parameters sent as POST to form a valid record model.
+ *
+ * @param $auth
+ *   Authentication tokens
+ *
+ * @return array
+ *   Returns the new record model
+ */
 function process_parameters($auth) {
   $params = array();
 
@@ -181,6 +194,17 @@ function process_parameters($auth) {
   return $submission;
 }
 
+/**
+ * Checks if any of the occurrences in the model have any duplicates.
+ *
+ * Does that based on their external keys in the warehouse.
+ *
+ * @param array $submission
+ *   The record model.
+ *
+ * @return bool
+ *   Returns true if has duplicates.
+ */
 function has_duplicates($submission) {
   $duplicates = find_duplicates($submission);
   if (count($duplicates) > 0) {
@@ -201,7 +225,15 @@ function has_duplicates($submission) {
   return FALSE;
 }
 
-
+/**
+ * Finds duplicates in the warehouse.
+ *
+ * @param array $submission
+ *   Record model.
+ *
+ * @return array
+ *   Returns an array of duplicates.
+ */
 function find_duplicates($submission) {
   $connection = iform_get_connection_details(NULL);
   $auth = data_entry_helper::get_read_auth($connection['website_id'], $connection['password']);
@@ -223,6 +255,12 @@ function find_duplicates($submission) {
   return $duplicates;
 }
 
+/**
+ * Validates the request params inc. user details.
+ *
+ * @return bool
+ *   True if the request is valid
+ */
 function validate_request() {
   if (!iform_mobile_auth_authorise_request()) {
     error_print(400, 'Bad Request', 'Could not find/authenticate user');
@@ -246,8 +284,19 @@ function validate_request() {
   return TRUE;
 }
 
+/**
+ * Prints to log and returns a json formatted error back to the client.
+ *
+ * @param int $code
+ *   Status code of the header.
+ * @param string $status
+ *   Status of the header.
+ * @param string $title
+ *   Title of the error.
+ * @param null $errors
+ *   If multiple errors then it can be passed as an array.
+ */
 function error_print($code, $status, $title, $errors = NULL) {
-  // Something went wrong in obtaining nonce.
   drupal_add_http_header('Status', $code . ' ' . $status);
   if (is_null($errors)) {
     drupal_json_output([

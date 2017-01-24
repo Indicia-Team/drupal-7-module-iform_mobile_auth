@@ -1,6 +1,11 @@
 <?php
 
 
+/**
+ * This function handles the login request.
+ *
+ * The function either returns an error or the user's details.
+ */
 function iform_mobile_auth_users_auth_post() {
   iform_mobile_auth_log('Users Auth POST');
   iform_mobile_auth_log(print_r($_POST, 1));

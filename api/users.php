@@ -9,6 +9,12 @@ const SECONDNAME_FIELD = 'field_last_name';
 const CONFIRMATION_FIELD = 'field_confirmation_code';
 const INDICIA_ID_FIELD = 'field_indicia_user_id';
 
+
+/**
+ * This function handles the registration request.
+ *
+ * The function either returns an error or the user's details.
+ */
 function iform_mobile_auth_users_post() {
   iform_mobile_auth_log('Users POST');
   iform_mobile_auth_log(print_r($_POST, 1));

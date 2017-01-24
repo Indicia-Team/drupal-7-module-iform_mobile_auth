@@ -31,16 +31,7 @@ function iform_mobile_auth_users_post() {
 
   // Return the user's details to client.
   drupal_add_http_header('Status', '201 Created');
-  $data = [
-    'type' => 'users',
-    'id' => $new_user_obj->getIdentifier(),
-    'email' => $new_user_obj->mail->value(),
-    'secret' => $new_user_obj->{SHARED_SECRET_FIELD}->value(),
-    'firstname' => $new_user_obj->{FIRSTNAME_FIELD}->value(),
-    'secondname' => $new_user_obj->{SECONDNAME_FIELD}->value(),
-  ];
-  $output = ['data' => $data];
-  drupal_json_output($output);
+  return_user_details($new_user_obj);
   iform_mobile_auth_log('User created');
 }
 
@@ -50,7 +41,7 @@ function validate_user_post_request() {
   $provided_appsecret = $_POST['appsecret'];
   $provided_appname = empty($_POST['appname']) ? '' : $_POST['appname'];
   if (!iform_mobile_auth_authorise_app($provided_appname, $provided_appsecret)) {
-    error_print(400, 'Bad Request', 'Missing or incorrect shared app secret');
+    error_print(401, 'Unauthorized', 'Missing or incorrect shared app secret');
 
     return FALSE;
   }
@@ -139,4 +130,17 @@ function send_activation_email($new_user) {
     user_preferred_language($new_user),
     $params
   );
+}
+
+function return_user_details($user_obj) {
+  $data = [
+    'type' => 'users',
+    'id' => $user_obj->getIdentifier(),
+    'email' => $user_obj->mail->value(),
+    'usersecret' => $user_obj->{SHARED_SECRET_FIELD}->value(),
+    'firstname' => $user_obj->{FIRSTNAME_FIELD}->value(),
+    'secondname' => $user_obj->{SECONDNAME_FIELD}->value(),
+  ];
+  $output = ['data' => $data];
+  drupal_json_output($output);
 }

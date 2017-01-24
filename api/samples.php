@@ -1,56 +1,58 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: karkaz
- * Date: 20/01/2017
- * Time: 11:03
- */
+
 
 
 function iform_mobile_auth_samples_post() {
   iform_mobile_auth_log('Samples POST');
   iform_mobile_auth_log(print_r($_POST, 1));
 
-  if (!validateRequest()) return;
+  if (!validate_request()) {
+    return;
+  }
 
-  // Get auth
+  // Get auth.
   try {
     $connection = iform_get_connection_details(NULL);
     $auth = data_entry_helper::get_read_write_auth($connection['website_id'], $connection['password']);
-  } catch (Exception $e) {
-    return error_print(502, 'Bad Gateway', 'Something went wrong in obtaining nonce');
+  }
+  catch (Exception $e) {
+    error_print(502, 'Bad Gateway', 'Something went wrong in obtaining nonce');
+    return;
   }
 
-  // Construct photos
+  // Construct photos.
   process_files();
 
-  // Construct post parameter array
+  // Construct post parameter array.
   $submission = process_parameters($auth);
 
-  // Check for duplicates
-  if (has_duplicates($submission)) return;
+  // Check for duplicates.
+  if (has_duplicates($submission)) {
+    return;
+  }
 
-  // Send record to indicia
+  // Send record to indicia.
   $response = data_entry_helper::forward_post_to('sample', $submission, $auth['write_tokens']);
 
-  // Return response to client
+  // Return response to client.
   if (isset($response['error'])) {
     $errors = [];
     foreach ($response['errors'] as $key => $error) {
       array_push($errors, [
-        title => $key,
-        description => $error
+        'title' => $key,
+        'description' => $error,
       ]);
     }
-    error_print(400, 'Bad Request', null, $errors);
-  } else {
-    // Created
+    error_print(400, 'Bad Request', NULL, $errors);
+  }
+  else {
+    // Created.
     drupal_add_http_header('Status', '201 Created');
     $data = [
-      type => "samples",
-      id => $response['success']
+      'type' => 'samples',
+      'id' => $response['success'],
     ];
-    $output = [ data => $data ];
+    $output = ['data' => $data];
     drupal_json_output($output);
     iform_mobile_auth_log(print_r($response, 1));
   }
@@ -59,7 +61,7 @@ function iform_mobile_auth_samples_post() {
 function process_files() {
   $processedFiles = array();
   foreach ($_FILES as $name => $info) {
-    // if name is sample_photo1 or photo1 etc then process it.
+    // If name is sample_photo1 or photo1 etc then process it.
     if (preg_match('/^(?P<sample>sample_)?photo(?P<id>[0-9])$/', $name, $matches)) {
       $baseModel = empty($matches['sample']) ? 'occurrence' : 'sample';
       $name = "$baseModel:image:$matches[id]";
@@ -74,14 +76,17 @@ function process_files() {
       }
       $processedFiles[$name] = $info;
     }
-    // Handle files sent along with a species checklist style submission. Files should be POSTed in
-    // a field called sc:<gridrow>::photo[1-9] and will then get moved to the interim image folder and
-    // linked to the form using a field called sc:<gridrow>::occurremce_media:path:[1-9]
+    // Handle files sent along with a species checklist style submission.
+    // Files should be POSTed in
+    // a field called sc:<gridrow>::photo[1-9] and will then get moved to the
+    // interim image folder and
+    // linked to the form using a field called
+    // sc:<gridrow>::occurremce_media:path:[1-9] .
     elseif (preg_match('/^sc:(?P<gridrow>.+)::photo(?P<id>[0-9])$/', $name, $matches)) {
       $interim_image_folder = isset(data_entry_helper::$interim_image_folder) ? data_entry_helper::$interim_image_folder : 'upload/';
-      $uploadPath = data_entry_helper::relative_client_helper_path().$interim_image_folder;
-      $interimFileName = uniqid().'.jpg';
-      if (move_uploaded_file($info['tmp_name'], $uploadPath.$interimFileName)) {
+      $uploadPath = data_entry_helper::relative_client_helper_path() . $interim_image_folder;
+      $interimFileName = uniqid() . '.jpg';
+      if (move_uploaded_file($info['tmp_name'], $uploadPath . $interimFileName)) {
         $_POST["sc:$matches[gridrow]::occurrence_medium:path:$matches[id]"] = $interimFileName;
       }
     }
@@ -101,7 +106,7 @@ function process_parameters($auth) {
   $params['website_id'] = $safe_website_id;
   $params['survey_id'] = $safe_survey_id;
   $params['auth_token'] = $auth['write_tokens']['auth_token'];
-  $params['nonce'] = $auth['write_tokens']['nonce'];;
+  $params['nonce'] = $auth['write_tokens']['nonce'];
 
   // Obtain coordinates of location if a name is specified.
   $georeftype = iform_mobile_auth_escape($_POST['sample:entered_sref_system']);
@@ -115,7 +120,7 @@ function process_parameters($auth) {
   $params['sample:entered_sref'] = $ref;
   $params['sample:entered_sref_system'] = $georeftype;
   $params['sample:geom'] = '';
-  $params['gridmode'] = 'true';
+  $params['gridmode'] = 'TRUE';
 
   // Enter occurrence info.
   $params['occurrence:present'] = 'on';
@@ -143,24 +148,25 @@ function process_parameters($auth) {
     }
   }
 
-  // We allow a sample with list of occurrences, sample with single occurrence or just a sample
-  // to be submitted.
+  // We allow a sample with list of occurrences, sample with single occurrence
+  // or just a sample to be submitted.
   if ($is_occurrence_list) {
     $attrArgs = array(
-      'valuetable'=>'occurrence_attribute_value',
-      'attrtable'=>'occurrence_attribute',
-      'key'=>'occurrence_id',
-      'fieldprefix'=>'occAttr',
-      'extraParams'=>$auth['read'],
-      'survey_id'=>$safe_survey_id
+      'valuetable' => 'occurrence_attribute_value',
+      'attrtable' => 'occurrence_attribute',
+      'key' => 'occurrence_id',
+      'fieldprefix' => 'occAttr',
+      'extraParams' => $auth['read'],
+      'survey_id' => $safe_survey_id,
     );
-    $occAttrs = data_entry_helper::getAttributes($attrArgs, false);
+    $occAttrs = data_entry_helper::getAttributes($attrArgs, FALSE);
     $abundanceAttrs = array();
     foreach ($occAttrs as $attr) {
-      if ($attr['system_function']==='sex_stage_count')
+      if ($attr['system_function'] === 'sex_stage_count') {
         $abundanceAttrs[] = $attr['attributeId'];
+      }
     }
-    $submission = data_entry_helper::build_sample_occurrences_list_submission($params,false,$abundanceAttrs);
+    $submission = data_entry_helper::build_sample_occurrences_list_submission($params, FALSE, $abundanceAttrs);
   }
   elseif (!empty($params['occurrence:taxa_taxon_list_id'])) {
     $submission = data_entry_helper::build_sample_occurrence_submission($params);
@@ -181,17 +187,20 @@ function has_duplicates($submission) {
     $errors = [];
     foreach ($duplicates as $duplicate) {
       array_push($errors, [
-        id => $duplicate['id'],
-        external_key => $duplicate['external_key'],
-        sample_id => $duplicate['sample_id'],
-        title => 'Occurrence already exists.'
+        'id' => $duplicate['id'],
+        'external_key' => $duplicate['external_key'],
+        'sample_id' => $duplicate['sample_id'],
+        'title' => 'Occurrence already exists.',
       ]);
     }
-    error_print(409, 'Conflict', null, $errors);
-    return true;
+    error_print(409, 'Conflict', NULL, $errors);
+
+    return TRUE;
   }
-  return false;
+
+  return FALSE;
 }
+
 
 function find_duplicates($submission) {
   $connection = iform_get_connection_details(NULL);
@@ -203,9 +212,10 @@ function find_duplicates($submission) {
       'table' => 'occurrence',
       'extraParams' => array_merge($auth, [
         'view' => 'detail',
-        'external_key' => $occurrence['model']['fields']['external_key']['value']
+        'external_key' => $occurrence['model']['fields']['external_key']['value'],
       ]),
-      'nocache' => true // forces a load from the db rather than local cache
+      // Forces a load from the db rather than local cache.
+      'nocache' => TRUE,
     ));
     $duplicates = array_merge($duplicates, $existing);
   }
@@ -213,38 +223,45 @@ function find_duplicates($submission) {
   return $duplicates;
 }
 
-function validateRequest() {
+function validate_request() {
   if (!iform_mobile_auth_authorise_request()) {
     error_print(400, 'Bad Request', 'Could not find/authenticate user');
-    return false;
+
+    return FALSE;
   }
 
   $safe_website_id = intval(isset($_POST['website_id']) ? $_POST['website_id'] : 0);
   if ($safe_website_id == 0 || $safe_website_id != variable_get('indicia_website_id', '')) {
     error_print(400, 'Bad Request', 'Missing or incorrect website_id');
-    return false;
+
+    return FALSE;
   }
   $safe_survey_id = intval($_POST['survey_id']);
   if ($safe_survey_id == 0) {
     error_print(400, 'Bad Request', 'Missing or incorrect survey_id');
-    return false;
+
+    return FALSE;
   }
-  return true;
+
+  return TRUE;
 }
 
-function error_print($code, $status, $title, $errors = null) {
+function error_print($code, $status, $title, $errors = NULL) {
   // Something went wrong in obtaining nonce.
-  drupal_add_http_header('Status', $code.' '.$status);
+  drupal_add_http_header('Status', $code . ' ' . $status);
   if (is_null($errors)) {
     drupal_json_output([
-      errors => [
-        [ title => $title ]
-      ]
+      'errors' => [
+        [
+          'title' => $title,
+        ],
+      ],
     ]);
     iform_mobile_auth_log($title);
-  } else {
+  }
+  else {
     drupal_json_output([
-      errors => $errors
+      'errors' => $errors,
     ]);
     iform_mobile_auth_log('Error');
     iform_mobile_auth_log(print_r($errors, 1));

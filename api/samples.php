@@ -7,7 +7,7 @@ function iform_mobile_auth_samples_post() {
   iform_mobile_auth_log('Samples POST');
   iform_mobile_auth_log(print_r($_POST, 1));
 
-  if (!validate_request()) {
+  if (!validate_samples_post_request()) {
     return;
   }
 
@@ -104,11 +104,11 @@ function process_files() {
 /**
  * Processes all the parameters sent as POST to form a valid record model.
  *
- * @param $auth
- *   Authentication tokens
+ * @param array $auth
+ *   Authentication tokens.
  *
  * @return array
- *   Returns the new record model
+ *   Returns the new record model.
  */
 function process_parameters($auth) {
   $params = array();
@@ -261,7 +261,7 @@ function find_duplicates($submission) {
  * @return bool
  *   True if the request is valid
  */
-function validate_request() {
+function validate_samples_post_request() {
   if (!iform_mobile_auth_authorise_request()) {
     error_print(400, 'Bad Request', 'Could not find/authenticate user');
 

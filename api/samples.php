@@ -36,27 +36,7 @@ function iform_mobile_auth_samples_post() {
   $response = data_entry_helper::forward_post_to('sample', $submission, $auth['write_tokens']);
 
   // Return response to client.
-  if (isset($response['error'])) {
-    $errors = [];
-    foreach ($response['errors'] as $key => $error) {
-      array_push($errors, [
-        'title' => $key,
-        'description' => $error,
-      ]);
-    }
-    error_print(400, 'Bad Request', NULL, $errors);
-  }
-  else {
-    // Created.
-    drupal_add_http_header('Status', '201 Created');
-    $data = [
-      'type' => 'samples',
-      'id' => $response['success'],
-    ];
-    $output = ['data' => $data];
-    drupal_json_output($output);
-    iform_mobile_auth_log(print_r($response, 1));
-  }
+  return_response($response);
 }
 
 /**
@@ -211,6 +191,7 @@ function has_duplicates($submission) {
     $errors = [];
     foreach ($duplicates as $duplicate) {
       array_push($errors, [
+        'status' => '409',
         'id' => $duplicate['id'],
         'external_key' => $duplicate['external_key'],
         'sample_id' => $duplicate['sample_id'],
@@ -302,6 +283,7 @@ function error_print($code, $status, $title, $errors = NULL) {
     drupal_json_output([
       'errors' => [
         [
+          'status' => (string) $code,
           'title' => $title,
         ],
       ],
@@ -314,5 +296,29 @@ function error_print($code, $status, $title, $errors = NULL) {
     ]);
     iform_mobile_auth_log('Error');
     iform_mobile_auth_log(print_r($errors, 1));
+  }
+}
+
+function return_response($response) {
+  if (isset($response['error'])) {
+    $errors = [];
+    foreach ($response['errors'] as $key => $error) {
+      array_push($errors, [
+        'title' => $key,
+        'description' => $error,
+      ]);
+    }
+    error_print(400, 'Bad Request', NULL, $errors);
+  }
+  else {
+    // Created.
+    drupal_add_http_header('Status', '201 Created');
+    $data = [
+      'type' => 'samples',
+      'id' => $response['success'],
+    ];
+    $output = ['data' => $data];
+    drupal_json_output($output);
+    iform_mobile_auth_log(print_r($response, 1));
   }
 }

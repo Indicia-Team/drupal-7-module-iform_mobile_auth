@@ -25,7 +25,7 @@ function iform_mobile_auth_samples_post() {
   process_files();
 
   // Construct post parameter array.
-  $submission = process_parameters($auth);
+  $submission = process_parameters($auth, $connection);
 
   // Check for duplicates.
   if (has_duplicates($submission)) {
@@ -90,14 +90,13 @@ function process_files() {
  * @return array
  *   Returns the new record model.
  */
-function process_parameters($auth) {
+function process_parameters($auth, $connection) {
   $params = array();
 
   // General info.
-  $safe_website_id = intval(isset($_POST['website_id']) ? $_POST['website_id'] : 0);
   $safe_survey_id = intval($_POST['survey_id']);
-  $params['website_id'] = $safe_website_id;
   $params['survey_id'] = $safe_survey_id;
+  $params['website_id'] = $connection['website_id'];
   $params['auth_token'] = $auth['write_tokens']['auth_token'];
   $params['nonce'] = $auth['write_tokens']['nonce'];
 
@@ -249,12 +248,6 @@ function validate_samples_post_request() {
     return FALSE;
   }
 
-  $safe_website_id = intval(isset($_POST['website_id']) ? $_POST['website_id'] : 0);
-  if ($safe_website_id == 0 || $safe_website_id != variable_get('indicia_website_id', '')) {
-    error_print(400, 'Bad Request', 'Missing or incorrect website_id');
-
-    return FALSE;
-  }
   $safe_survey_id = intval($_POST['survey_id']);
   if ($safe_survey_id == 0) {
     error_print(400, 'Bad Request', 'Missing or incorrect survey_id');

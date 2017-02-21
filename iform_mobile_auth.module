@@ -732,8 +732,6 @@ function iform_mobile_auth_client_submission() {
           $info['name'] = bin2hex(openssl_random_pseudo_bytes(20)) . '.png';
         }
         $processedFiles[$name] = $info;
-      echo $info['name'];
-
       }
       // Handle files sent along with a species checklist style submission. Files should be POSTed in
       // a field called sc:<gridrow>::photo[1-9+] and will then get moved to the interim image folder and

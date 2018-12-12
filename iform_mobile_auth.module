@@ -153,8 +153,8 @@ function iform_mobile_auth_mail($key, &$message, $params) {
 
 /**
  * This function handles the register/login request from a mobile app.
- * 
- * The function either returns a HTTP error status code or the user's secret 
+ *
+ * The function either returns a HTTP error status code or the user's secret
  * token
  */
 function iform_mobile_auth_user_register() {
@@ -354,7 +354,7 @@ function iform_mobile_auth_user_register() {
  */
 function iform_mobile_auth_user_login() {
   // skip if not called from an app
-  if (empty($_POST['appsecret']))  
+  if (empty($_POST['appsecret']))
     return;
 
   drupal_add_http_header('Content-type', 'text/plain; charset=UTF-8');
@@ -612,7 +612,7 @@ function iform_mobile_auth_user_signup() {
 
 /**
  * Handles the request for account activation.
- * 
+ *
  * @param string $uid
  *   Value from url which should be a user id.
  * @param string $code
@@ -733,14 +733,14 @@ function iform_mobile_auth_client_submission() {
         }
         $processedFiles[$name] = $info;
       }
-      // Handle files sent along with a species checklist style submission. Files should be POSTed in
-      // a field called sc:<gridrow>::photo[1-9+] and will then get moved to the interim image folder and
-      // linked to the form using a field called sc:<gridrow>::occurremce_media:path:[1-9]
+      // Handle files sent along with a species checklist style submission.
+      // Files should be POSTed in a field called sc:<gridrow>::photo[1-9+] and
+      // will then get moved to the interim image folder and linked to the form
+      // using a field called sc:<gridrow>::occurremce_media:path:[1-9].
       elseif (preg_match('/^sc:(?P<gridrow>.+)::photo(?P<id>[0-9]+)$/', $name, $matches)) {
-        $interim_image_folder = isset(data_entry_helper::$interim_image_folder) ? data_entry_helper::$interim_image_folder : 'upload/';
-        $uploadPath = data_entry_helper::relative_client_helper_path().$interim_image_folder;
-        $interimFileName = bin2hex(openssl_random_pseudo_bytes(20)) .'.jpg';
-        if (move_uploaded_file($info['tmp_name'], $uploadPath.$interimFileName)) {
+        $uploadPath = data_entry_helper::getInterimImageFolder('fullpath');
+        $interimFileName = bin2hex(openssl_random_pseudo_bytes(20)) . '.jpg';
+        if (move_uploaded_file($info['tmp_name'], $uploadPath . $interimFileName)) {
           $_POST["sc:$matches[gridrow]::occurrence_medium:path:$matches[id]"] = $interimFileName;
         }
       }
@@ -833,7 +833,7 @@ function iform_mobile_auth_client_submission() {
       }
     }
 
-    // We allow a sample with list of occurrences, sample with single occurrence or just a sample 
+    // We allow a sample with list of occurrences, sample with single occurrence or just a sample
     // to be submitted.
     if ($is_occurrence_list) {
       $auth = data_entry_helper::get_read_auth($connection['website_id'], $connection['password']);
@@ -898,18 +898,18 @@ function iform_mobile_auth_client_submission() {
  * Parameters can be provided as GET or POST data, since POST is required when
  * supporting long parameter values for geometry filters. Requires the following
  * query parameters:
- * * report - the path to the report file to run on the warehouse, 
+ * * report - the path to the report file to run on the warehouse,
  *   e.g. 'library/totals/filterable_species_occurrence_image_counts.xml'
  * * email - the logged in user's email, used for authentication
  * * usersecret - the user secret key, used for authentication
  * * appsecret - the shared app secret key, used for authentication.
- * * caching - optional setting to define the caching mode which defaults to 
+ * * caching - optional setting to define the caching mode which defaults to
  *   false (no caching).
- *   Set to global for a single global cache entry (which cannot be used for 
+ *   Set to global for a single global cache entry (which cannot be used for
  *   user-specific reports).
  *   Set to perUser to cache the report on a per user basis.
- * * cacheTimeout - number of seconds before which the cache cannot expire. 
- *   After this, there is a random chance of expiry on each hit. Defaults to 
+ * * cacheTimeout - number of seconds before which the cache cannot expire.
+ *   After this, there is a random chance of expiry on each hit. Defaults to
  *   3600.
  * Additionally, provide a query parameter for each report parameter value,
  * orderby, sortdir, limit or offset you wish to pass to the report.
@@ -933,7 +933,7 @@ function iform_mobile_auth_report() {
   }
   // Wrap user for ease of accessing fields.
   $user_wrapped = entity_metadata_wrapper('user', $existing_user);
-  
+
   $connection = iform_get_connection_details(NULL);
   $auth = data_entry_helper::get_read_auth($connection['website_id'], $connection['password']);
   $url = helper_config::$base_url . 'index.php/services/report/requestReport';
@@ -1025,9 +1025,9 @@ function iform_mobile_auth_services() {
 /**
  * Authorise a request to either submit or read records from an app.
  *
- * Uses the posted usersecret, appsecret and email to check that the app is 
+ * Uses the posted usersecret, appsecret and email to check that the app is
  * authorised and that the user is valid and activated.
- * @return object 
+ * @return object
  *   Drupal user object, or FALSE if not authorised.
  */
 function iform_mobile_auth_authorise_request() {
@@ -1112,12 +1112,12 @@ function iform_mobile_auth_authorise_request() {
 
 /**
  * Checks if the user is allowed to see a saved app account.
- * 
+ *
  * @param array $app
  *   An array containing details of an app account.
- * 
+ *
  * @return bool
- *   TRUE if user has the 'admin moobile auth permission' or they created the 
+ *   TRUE if user has the 'admin moobile auth permission' or they created the
  *   app.
  */
 function user_has_permission($app = NULL) {
@@ -1181,12 +1181,12 @@ function iform_mobile_auth_authorise_app($name, $secret) {
 
 /**
  * Generates a hashed secret.
- * 
+ *
  * Uses PHPASS library for pre PHP 5.3
- * 
+ *
  * @param string $secret
  *   The value to hash.
- * 
+ *
  * @return string
  *   The hashed value.
  */
@@ -1199,7 +1199,7 @@ function generate_hash($secret) {
 
 /**
  * Verifies a hashed password.
- * 
+ *
  * Uses PHPASS library for pre PHP 5.3
  */
 function verify_hash($secret, $hashed_secret) {
@@ -1211,7 +1211,7 @@ function verify_hash($secret, $hashed_secret) {
 
 /**
  * A function to escape user input.
- * 
+ *
  * Currently simply a wrapper around drupal's check_plain function.
  */
 function iform_mobile_auth_escape($value) {
@@ -1230,10 +1230,10 @@ function iform_mobile_auth_escape($value) {
 
 /**
  * A simple utility method to generate a random string of specific length.
- * 
+ *
  * @param int $length
  *   The length of string required.
- * 
+ *
  * @return string
  *   A random string.
  */
@@ -1244,19 +1244,19 @@ function iform_mobile_auth_generate_random_string($length = 10) {
 
 /**
  * Obtains an indicia user id from the warehouse.
- * 
- * This calls the index.php/services/user_identifier/get_user_id service to 
+ *
+ * This calls the index.php/services/user_identifier/get_user_id service to
  * return an indicia id which can be associated with the user account.
- * 
- * @param string $email 
+ *
+ * @param string $email
  *   The user's email.
- * @param string $firstname 
+ * @param string $firstname
  *   The user's first name.
- * @param string $secondname 
+ * @param string $secondname
  *   The user's surname.
  * @param int $cms_id
  *   The Drupal user id. Not needed when creating new users.
- * 
+ *
  * @return int
  *   The indicia user id if successful else -1 or and error message.
  */
@@ -1314,13 +1314,13 @@ function iform_mobile_auth_get_user_id($email, $firstname, $secondname, $cms_id 
 
 /**
  * Test if the supplied password is acceptable.
- * 
- * Simple at the moment but could contain additional checks (alpha-numerics, 
+ *
+ * Simple at the moment but could contain additional checks (alpha-numerics,
  * special chars etc)
- * 
- * @param string $pass 
+ *
+ * @param string $pass
  *   The proposed password.
- * 
+ *
  * @return bool
  *   TRUE is password is acceptable, else FALSE
  */
@@ -1331,7 +1331,7 @@ function iform_mobile_auth_validate_password($pass) {
 
 /**
  * Tests to see if the app for which a POST has been received is in debug mode.
- * 
+ *
  * @return bool
  *   TRUE if the app is in debug mode.
  */
@@ -1356,7 +1356,7 @@ function iform_mobile_auth_debug_mode() {
 
 /**
  * Logs app send data.
- * 
+ *
  * todo: add user authentication option, so that messages have user id.
  */
 function iform_mobile_auth_log_submission() {
@@ -1382,7 +1382,7 @@ function iform_mobile_auth_log_submission() {
 
 /**
  * Logs messages if in debug mode.
- * 
+ *
  * Messages go to the PHP error log and the Drupal error log.
  */
 function iform_mobile_auth_log($message, $variables = array(), $severity = WATCHDOG_NOTICE, $link = NULL) {
@@ -1395,7 +1395,7 @@ function iform_mobile_auth_log($message, $variables = array(), $severity = WATCH
 }
 
 /**
- * Implements hook_user_view(). 
+ * Implements hook_user_view().
  */
 function iform_mobile_auth_user_view($account, $view_mode, $langcode) {
   // Hide's system fields when not an admin.

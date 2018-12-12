@@ -875,13 +875,16 @@ function iform_mobile_auth_client_submission() {
     if (isset($output['error'])) {
       // Something went wrong.
       drupal_add_http_header('Status', '502 Bad Gateway');
-      print "The server reported the following error:<br/>";
-      print $output['error'] . "<br/>";
-      foreach ($output['errors'] as $error) {
-        print "$error<br/>";
+      $problem = "The server reported the following error:<br/>";
+      $problem .= $output['error'] . "<br/>";
+      if (!isset($output['errors'])) {
+        foreach ($output['errors'] as $error) {
+          $problem .= "$error<br/>";
+        }
       }
+      watchdog('iform_mobile_auth', "Submission failure.<br/>$problem");
+      print $problem;
     }
-
     iform_mobile_auth_log(print_r($output, 1));
   }
   else {

@@ -710,9 +710,10 @@ function iform_mobile_auth_client_submission() {
 
   // Obtain nonce.
   $curl_check = data_entry_helper::http_post(
-          helper_config::$base_url . 'index.php/services/security/get_nonce',
-          $postargs,
-          FALSE);
+    data_entry_helper::$base_url . 'index.php/services/security/get_nonce',
+    $postargs,
+    FALSE
+  );
 
   if (isset($curl_check['result'])) {
     // check the files for photos
@@ -939,7 +940,7 @@ function iform_mobile_auth_report() {
 
   $connection = iform_get_connection_details(NULL);
   $auth = data_entry_helper::get_read_auth($connection['website_id'], $connection['password']);
-  $url = helper_config::$base_url . 'index.php/services/report/requestReport';
+  $url = data_entry_helper::$base_url . 'index.php/services/report/requestReport';
   $caching = !empty($request['caching']) ? $request['caching'] : 'false';
   $cache_timeout = !empty($request['cacheTimeout']) ? $request['cacheTimeout'] : 3600;
   unset($request['appsecret']);
@@ -1272,8 +1273,9 @@ function iform_mobile_auth_get_user_id($email, $firstname, $secondname, $cms_id 
 
   // Obtain nonce.
   $curl_check = data_entry_helper::http_post(
-          helper_config::$base_url . 'index.php/services/security/get_nonce',
-          $postargs);
+    data_entry_helper::$base_url . 'index.php/services/security/get_nonce',
+    $postargs
+  );
 
   if ($curl_check['result']) {
     $nonce = $curl_check['output'];
@@ -1293,9 +1295,10 @@ function iform_mobile_auth_get_user_id($email, $firstname, $secondname, $cms_id 
 
     // Request the user id.
     $get_id_results = data_entry_helper::http_post(
-            helper_config::$base_url . 'index.php/services/user_identifier/get_user_id',
-            $postargs,
-            FALSE);
+      data_entry_helper::$base_url . 'index.php/services/user_identifier/get_user_id',
+      $postargs,
+      FALSE
+    );
     iform_mobile_auth_log(print_r($get_id_results, 1));
 
     $result = json_decode($get_id_results['output']);

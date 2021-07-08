@@ -947,6 +947,7 @@ function iform_mobile_auth_report() {
   unset($request['usersecret']);
   unset($request['email']);
   unset($request['cacheTimeout']);
+  unset($request['user_id']);
   $defaults = array(
     'reportSource' => 'local',
   );
